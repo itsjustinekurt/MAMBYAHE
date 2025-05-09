@@ -1,0 +1,184 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>People</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    body {
+      background: url('c:\Users\ACER\Downloads\331ef22b-0b51-4aa6-829b-37d267a88848 (1).jpg') center center/cover no-repeat;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-content {
+      border-radius: 1rem;
+      max-width: 900px;
+      width: 100%;
+    }
+    .form-control::placeholder {
+      color: #d1d5db;
+      font-size: 0.75rem;
+    }
+    .btn-block {
+      background-color: #f4a49a;
+      color: black;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    .btn-block:hover {
+      background-color: #e07f75;
+      color: black;
+    }
+    .btn-suspend {
+      background-color: #f18a3f;
+      color: black;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    .btn-suspend:hover {
+      background-color: #d36f2e;
+      color: black;
+    }
+    .btn-warning {
+      background-color: #1f2f2f;
+      color: white;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    .btn-warning:hover {
+      background-color: #162020;
+      color: white;
+    }
+    .close-btn {
+      color: #ef4444;
+      font-size: 1.25rem;
+      border: none;
+      background: transparent;
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      cursor: pointer;
+    }
+    .star-yellow {
+      color: #facc15;
+      font-size: 1.25rem;
+    }
+    .star-gray {
+      color: #d1d5db;
+      font-size: 1.25rem;
+    }
+    label {
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="modal-content p-4 position-relative shadow">
+    <button aria-label="Close modal" class="close-btn" type="button">
+      <i class="fas fa-times"></i>
+    </button>
+    <form class="row g-3 text-secondary" style="font-size: 0.75rem; font-family: Arial, sans-serif;">
+      <div class="col-12 col-sm-6">
+        <label for="fullname" class="form-label">Full Name</label>
+        <input
+          type="text"
+          class="form-control"
+          id="fullname"
+          placeholder="Juan D. Dela Cruz"
+        />
+      </div>
+      <div class="col-12 col-sm-6">
+        <label for="nationality" class="form-label">Nationality</label>
+        <input type="text" class="form-control" id="nationality" />
+      </div>
+
+      <div class="col-12 col-sm-6">
+        <label for="birthday" class="form-label">Birthday</label>
+        <input
+          type="text"
+          class="form-control"
+          id="birthday"
+          placeholder="mm/dd/yyyy"
+        />
+      </div>
+      <div class="col-12 col-sm-6">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" />
+      </div>
+
+      <div class="col-12 col-sm-6">
+        <label for="gender" class="form-label">Gender</label>
+        <input
+          type="text"
+          class="form-control"
+          id="gender"
+          placeholder="Select a Gender"
+        />
+      </div>
+      <div class="col-12 col-sm-6">
+        <label for="role" class="form-label">Role</label>
+        <input
+          type="text"
+          class="form-control"
+          id="role"
+          placeholder="Passenger"
+        />
+      </div>
+
+      <div class="col-12 col-sm-6">
+        <label for="address" class="form-label">Residential Address</label>
+        <input
+          type="text"
+          class="form-control"
+          id="address"
+          placeholder="St., Brgy., City, Province"
+        />
+      </div>
+      <div class="col-12 col-sm-6">
+        <label for="govid" class="form-label">Government Issued ID</label>
+        <input
+          type="text"
+          class="form-control"
+          id="govid"
+          placeholder="Attach File"
+        />
+      </div>
+
+      <div class="col-12 col-sm-6">
+        <label for="phone" class="form-label">Phone Number</label>
+        <input
+          type="text"
+          class="form-control"
+          id="phone"
+          placeholder="+63 xxxxxxxxx"
+        />
+      </div>
+      <div class="col-12 col-sm-6 d-flex align-items-center">
+        <span class="fw-bold me-2">Reviews:</span>
+        <i class="fas fa-star star-yellow"></i>
+        <i class="fas fa-star star-yellow"></i>
+        <i class="fas fa-star star-yellow"></i>
+        <i class="fas fa-star star-yellow"></i>
+        <i class="fas fa-star star-gray"></i>
+      </div>
+
+      <div class="col-12 d-flex justify-content-end gap-2 mt-3">
+        <button type="button" class="btn btn-block rounded">Block</button>
+        <button type="button" class="btn btn-suspend rounded">Suspend</button>
+        <button type="button" class="btn btn-warning rounded">Warning</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

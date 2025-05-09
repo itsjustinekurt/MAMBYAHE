@@ -1,0 +1,123 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>LTFRB Info</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <style>
+    body, html {
+      height: 100%;
+      margin: 0;
+      font-family: 'Inter', sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .bg-image {
+      background-image: url('https://placehold.co/1200x800?text=Background+Image');
+      background-size: cover;
+      background-position: center;
+      height: calc(100vh - 56px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .info-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 400px;
+      box-shadow: 0 0.5rem 1rem rgb(0 0 0 / 0.15);
+    }
+    .info-list i {
+      width: 20px;
+    }
+    .info-list li {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: #212529;
+    }
+    .info-list li + li {
+      margin-top: 1rem;
+    }
+    .navbar-brand {
+      font-weight: 600;
+      font-size: 1.125rem;
+      user-select: none;
+    }
+    .btn-save {
+      font-size: 0.75rem;
+      padding: 0.375rem 1rem;
+      background-color: #212529;
+      border: none;
+      border-radius: 0.375rem;
+      color: white;
+      transition: background-color 0.15s ease-in-out;
+    }
+    .btn-save:hover, .btn-save:focus {
+      background-color: #343a40;
+      color: white;
+    }
+    .icon-btn {
+      background: none;
+      border: none;
+      color: #6c757d;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+    .icon-btn:hover {
+      color: #0d6efd;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar border-bottom" style="height: 56px;">
+    <div class="container-fluid d-flex justify-content-between align-items-center px-3">
+      <div class="d-flex align-items-center gap-3">
+        <button class="icon-btn" aria-label="Open menu">
+          <i class="fas fa-bars"></i>
+        </button>
+        <span class="navbar-brand mb-0">MTFRB</span>
+      </div>
+      <div class="d-flex align-items-center gap-4">
+        <button class="icon-btn" aria-label="User profile">
+          <i class="fas fa-user-circle"></i>
+        </button>
+        <button class="icon-btn" aria-label="Logout">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="bg-image">
+    <div class="info-card text-center">
+      <div class="mb-4">
+        <img src="https://storage.googleapis.com/a1aa/image/18093418-6bdf-4fd4-ea4b-4bfc185d3c42.jpg" alt="LTFRB official logo, circular blue and yellow emblem" width="80" height="80" class="img-fluid" />
+      </div>
+      <ul class="list-unstyled text-start info-list">
+        <li class="d-flex align-items-center">
+          <i class="fas fa-user me-3 text-secondary"></i>
+          MTFRB
+        </li>
+        <li class="d-flex align-items-center">
+          <i class="fas fa-envelope me-3 text-secondary"></i>
+          example@gmail.com
+        </li>
+        <li class="d-flex align-items-center">
+          <i class="fas fa-phone-alt me-3 text-secondary"></i>
+          (043) 9229061
+        </li>
+        <li class="d-flex align-items-start">
+          <i class="fas fa-home me-3 mt-1 text-secondary"></i>
+          6HGV+JR8, National Highway, Mamburao, dike, Mamburao, 5106 Occidental Mindoro
+        </li>
+      </ul>
+      <div class="mt-4 d-flex justify-content-center">
+        <button type="button" class="btn-save">Save and Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Push-Notification</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    body {
+      background: url('https://placehold.co/1920x1080?text=Background+Image+of+building+and+trees') center/cover no-repeat;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      margin: 0;
+    }
+    nav.navbar {
+      background-color: rgba(243, 244, 246, 0.8); 
+      backdrop-filter: blur(6px);
+      box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
+    }
+    main.container-bg {
+      background-color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(6px);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      position: relative;
+      max-width: 1140px;
+    }
+    table.table thead tr {
+      background-color: #d1d5db; 
+      color: #374151; 
+      font-size: 0.75rem;
+    }
+    table.table tbody tr {
+      background-color: rgba(209, 213, 219, 0.3); 
+      color: #374151;
+      font-size: 0.75rem;
+    }
+    table.table tbody tr td {
+      border: 1px solid #d1d5db;
+      vertical-align: middle;
+    }
+    button#add-btn {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      background: none;
+      border: none;
+      color: #374151;
+      font-size: 1.25rem;
+    }
+    nav.pagination-nav {
+      margin-top: 2rem;
+      font-size: 0.75rem;
+      color: #374151;
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    nav.pagination-nav button,
+    nav.pagination-nav a {
+      border: none;
+      background: none;
+      color: #2563eb; 
+      text-decoration: underline;
+      cursor: pointer;
+      padding: 0;
+    }
+    nav.pagination-nav button.disabled {
+      color: #9ca3af; 
+      cursor: default;
+      text-decoration: none;
+    }
+    nav.pagination-nav button.page-number {
+      background-color: #2563eb;
+      color: white;
+      border-radius: 0.25rem;
+      padding: 0.25rem 0.5rem;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    nav.pagination-nav button.page-number:hover:not(.active) {
+      background-color: #1e40af;
+    }
+    nav.pagination-nav button.page-number.active {
+      background-color: #2563eb;
+      color: white;
+      cursor: default;
+      text-decoration: none;
+    }
+    
+    .modal-backdrop-custom {
+      background-color: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(6px);
+    }
+   
+    .modal-content-custom {
+      border-radius: 0.25rem;
+      padding: 1.5rem;
+      position: relative;
+      max-width: 24rem;
+      margin: auto;
+    }
+    .btn-send {
+      background-color: #6ee7b7; 
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.25rem 1rem;
+      border-radius: 0.375rem;
+      border: none;
+    }
+    .btn-send:hover,
+    .btn-send:focus {
+      background-color: #34d399; 
+      color: white;
+    }
+    .dropdown-toggle::after {
+      display: none;
+    }
+    .receiver-btn {
+      background-color: #f3f4f6; 
+      border-radius: 0.375rem;
+      box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+      color: #111827; 
+      font-size: 0.875rem;
+      padding: 0.375rem 1rem;
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: none;
+    }
+    .receiver-btn i {
+      color: #4b5563; 
+    }
+    textarea#message {
+      font-size: 0.75rem;
+      resize: none;
+    }
+    label {
+      font-size: 0.75rem;
+      color: #374151; 
+    }
+    .modal-backdrop.show {
+      opacity: 1 !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar d-flex justify-content-between align-items-center px-3">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn p-0 text-dark" aria-label="Menu" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+      <span class="fw-bold fs-6">Push-Notification</span>
+    </div>
+    <div class="d-flex align-items-center gap-3 fs-5 text-dark">
+      <button class="btn p-0 text-dark" aria-label="User Profile" type="button">
+        <i class="fas fa-user-circle"></i>
+      </button>
+      <button class="btn p-0 text-dark" aria-label="Logout" type="button">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </nav>
+
+  
+  <main class="container-bg mx-auto mt-4">
+    
+    <div class="table-responsive rounded">
+      <table class="table mb-0 text-gray-700">
+        <thead>
+          <tr>
+            <th scope="col" class="border border-secondary text-secondary small">
+              Receiver <i class="fas fa-user-friends ms-1"></i>
+            </th>
+            <th scope="col" class="border border-secondary"></th>
+            <th scope="col" class="border border-secondary text-secondary small text-end">
+              Time <i class="fas fa-user-friends ms-1"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="border border-secondary small">D L_Aan</td>
+            <td class="border border-secondary"></td>
+            <td class="border border-secondary small text-end">4:15 AM</td>
+          </tr>
+          <tr>
+            <td class="border border-secondary small">&nbsp;</td>
+            <td class="border border-secondary">&nbsp;</td>
+            <td class="border border-secondary small">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="border border-secondary small">&nbsp;</td>
+            <td class="border border-secondary">&nbsp;</td>
+            <td class="border border-secondary small">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="border border-secondary small">&nbsp;</td>
+            <td class="border border-secondary">&nbsp;</td>
+            <td class="border border-secondary small">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="border border-secondary small">&nbsp;</td>
+            <td class="border border-secondary">&nbsp;</td>
+            <td class="border border-secondary small">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="border border-secondary small">&nbsp;</td>
+            <td class="border border-secondary">&nbsp;</td>
+            <td class="border border-secondary small">&nbsp;</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    
+    <button id="add-btn" aria-label="Add" type="button">
+      <i class="fas fa-plus-square"></i>
+    </button>
+
+    
+    <nav class="pagination-nav" aria-label="Pagination navigation">
+      <button class="btn disabled d-flex align-items-center gap-1" disabled>
+        <i class="fas fa-arrow-left"></i> Previous
+      </button>
+      <button class="btn page-number active">1</button>
+      <button class="btn text-decoration-underline text-primary">2 4</button>
+      <button class="btn">3</button>
+      <button class="btn d-flex align-items-center gap-1" title="Page 5">
+        <i class="fas fa-hand-pointer"></i> 5
+      </button>
+      <button class="btn">31</button>
+      <a href="#" class="text-primary text-decoration-underline">Next</a>
+      <a href="#" class="d-flex align-items-center gap-1 text-primary text-decoration-underline">
+        Show all <i class="fas fa-arrow-right"></i>
+      </a>
+    </nav>
+  </main>
+
+  
+  <div
+    class="modal fade show modal-backdrop-custom d-flex align-items-center justify-content-center"
+    tabindex="-1"
+    role="dialog"
+    aria-modal="true"
+    style="display: flex;"
+  >
+    <div class="modal-content modal-content-custom shadow">
+      
+      <button
+        type="button"
+        class="btn p-0 position-absolute top-0 start-0 m-3 text-secondary"
+        aria-label="Back"
+      >
+        <i class="fas fa-arrow-left"></i>
+      </button>
+
+      
+      <div class="mb-3">
+        <button
+          type="button"
+          class="receiver-btn"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+        >
+          <i class="fas fa-chevron-down"></i>
+          <span>Receiver</span>
+        </button>
+      </div>
+
+      
+      <label for="message" class="form-label">Message:</label>
+      <textarea
+        id="message"
+        class="form-control"
+        rows="3"
+        placeholder="Value"
+      >Value</textarea>
+
+
+      <div class="d-flex justify-content-center mt-4">
+        <button type="submit" class="btn-send">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

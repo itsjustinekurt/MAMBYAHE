@@ -1,0 +1,371 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>JourneyWave Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: white;
+    }
+    .sidebar {
+      background-color: #a0b0a3;
+      border-top-right-radius: 40px;
+      border-bottom-right-radius: 40px;
+      min-height: 100vh;
+      width: 16rem;
+      padding-top: 1.5rem;
+      padding-bottom: 2.5rem;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+    .sidebar .nav-link {
+      color: black;
+      font-weight: 400;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+    }
+    .sidebar .nav-link:hover {
+      color: black;
+      text-decoration: none;
+    }
+    .sidebar .nav-link i {
+      width: 1.25rem;
+      font-size: 1.125rem;
+    }
+    .sidebar .logo-text {
+      font-weight: 800;
+      font-size: 1.125rem;
+      color: white;
+    }
+    .sidebar .logo-text span {
+      font-weight: 900;
+    }
+    .sidebar .subtext {
+      font-weight: 800;
+      font-size: 0.625rem;
+      color: white;
+      margin-top: -0.25rem;
+    }
+    .main-content {
+      border-top-left-radius: 40px;
+      border-bottom-left-radius: 40px;
+      padding: 1.5rem;
+      flex-grow: 1;
+      background: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .topbar button {
+      background: none;
+      border: none;
+      color: black;
+      font-size: 1.25rem;
+    }
+    .topbar button:hover,
+    .topbar button:focus {
+      color: #6c757d;
+      outline: none;
+      box-shadow: none;
+    }
+    .content {
+      display: flex;
+      gap: 1.5rem;
+      flex-grow: 1;
+      flex-wrap: wrap;
+    }
+    .left-panel {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+      flex: 1 1 40%;
+      max-width: 28rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      min-height: 400px;
+    }
+    .chart-container {
+      background: white;
+      border-radius: 1rem;
+      padding: 1rem;
+      box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+      max-width: 20rem;
+      width: 100%;
+      min-height: 150px;
+    }
+    .chart-header {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #6b7280;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .bars {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      height: 6rem;
+      gap: 0.75rem;
+    }
+    .bar {
+      width: 0.75rem;
+      border-radius: 9999px;
+      background-color: #3b82f6;
+    }
+    .bar-1 { height: 40%; background-color: #93c5fd; }
+    .bar-2 { height: 60%; background-color: #60a5fa; }
+    .bar-3 { height: 70%; background-color: #3b82f6; }
+    .bar-4 { height: 80%; background-color: #2563eb; }
+    .bar-5 { height: 90%; background-color: #1d4ed8; }
+    .months {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #9ca3af;
+      margin-top: 0.5rem;
+    }
+    .visited-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 0.75rem;
+    }
+    .visited-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .visited-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: black;
+    }
+    .visited-item img {
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 0.25rem;
+      object-fit: cover;
+    }
+    .progress-bar-bg {
+      flex-grow: 1;
+      height: 0.5rem;
+      border-radius: 9999px;
+      background: linear-gradient(to right, #f97316, #ec4899, #ef4444);
+      position: relative;
+      margin: 0 0.5rem;
+    }
+    .progress-bar-fill {
+      height: 0.5rem;
+      border-radius: 9999px;
+      background-color: black;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .percentage {
+      width: 2.5rem;
+      text-align: right;
+      font-weight: 600;
+      font-size: 0.75rem;
+    }
+    .right-panel {
+      flex: 1 1 55%;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+      min-height: 400px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .right-panel img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 1rem;
+    }
+    @media (max-width: 768px) {
+      .content {
+        flex-direction: column;
+      }
+      .left-panel, .right-panel {
+        max-width: 100%;
+        flex: 1 1 100%;
+        min-height: 300px;
+      }
+      .sidebar {
+        width: 100%;
+        border-radius: 0;
+        min-height: auto;
+        padding-bottom: 1rem;
+        padding-top: 1rem;
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .sidebar nav {
+        display: flex;
+        gap: 1rem;
+      }
+      .sidebar .nav-link {
+        flex-direction: column;
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        white-space: normal;
+      }
+      .sidebar .nav-link i {
+        width: auto;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+      }
+      .main-content {
+        border-radius: 0;
+        padding: 1rem;
+        min-height: auto;
+      }
+      .topbar {
+        justify-content: flex-start;
+        gap: 1rem;
+        margin-bottom: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="d-flex">
+    <aside class="sidebar d-flex flex-column">
+      <div class="d-flex align-items-center gap-2 mb-4">
+        <img src="https://storage.googleapis.com/a1aa/image/53d1fd12-4534-4d5c-1ec5-71e31c9676fd.jpg" alt="Green logo with a small tree and a vehicle" width="40" height="40" />
+        <div>
+          <h1 class="logo-text mb-0"><span>Mambyahe</span></h1>
+          <p class="subtext mb-0">MTFRB</p>
+        </div>
+      </div>
+      <nav class="nav flex-column gap-3">
+        <a href="#" class="nav-link">
+          <i class="far fa-user"></i>
+          <span class="flex-grow-1">Dashboard</span>
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-users"></i>
+          <span class="flex-grow-1">Users</span>
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-cogs"></i>
+          <span class="flex-grow-1">Associations</span>
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-route"></i>
+          <span class="flex-grow-1">Trips</span>
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-map-marker-alt"></i>
+          <span class="flex-grow-1">Flat Fare</span>
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-bell"></i>
+          <span class="flex-grow-1">Send Notification</span>
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        <a href="#" class="nav-link">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span class="flex-grow-1">Reports &amp; Complaints</span>
+          <i class="fas fa-chevron-right"></i>
+        </a>
+      </nav>
+    </aside>
+    <main class="main-content d-flex flex-column">
+      <header class="topbar">
+        <button aria-label="User profile" type="button"><i class="far fa-user"></i></button>
+        <button aria-label="Logout" type="button"><i class="fas fa-sign-out-alt"></i></button>
+      </header>
+      <div class="content">
+        <section class="left-panel">
+          <div class="chart-container">
+            <div class="chart-header">
+              Month <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="bars">
+              <div class="bar bar-1" title="August"></div>
+              <div class="bar bar-2" title="September"></div>
+              <div class="bar bar-3" title="October"></div>
+              <div class="bar bar-4" title="November"></div>
+              <div class="bar bar-5" title="December"></div>
+            </div>
+            <div class="months">
+              <span>AUG</span>
+              <span>SEP</span>
+              <span>OCT</span>
+              <span>NOV</span>
+              <span>DEC</span>
+            </div>
+          </div>
+          <div>
+            <h2 class="visited-title">Most Visited Place</h2>
+            <ul class="visited-list">
+              <li class="visited-item">
+                <img src="https://storage.googleapis.com/a1aa/image/4c161c94-0203-455b-d686-c8b41fab9094.jpg" alt="OMSC-Mamburao Campus small building image" />
+                <span>OMSC-Mamburao Campus</span>
+                <div class="progress-bar-bg" aria-label="74% progress">
+                  <div class="progress-bar-fill" style="width: 74%;"></div>
+                </div>
+                <span class="percentage">74%</span>
+              </li>
+              <li class="visited-item">
+                <img src="https://storage.googleapis.com/a1aa/image/eaeb5c64-de60-4b44-c7f8-48962f37faf4.jpg" alt="OMNHS small building image" />
+                <span>OMNHS</span>
+                <div class="progress-bar-bg" aria-label="52% progress">
+                  <div class="progress-bar-fill" style="width: 52%;"></div>
+                </div>
+                <span class="percentage">52%</span>
+              </li>
+              <li class="visited-item">
+                <img src="https://storage.googleapis.com/a1aa/image/9ab3cc5f-276c-4315-a0a4-94d77296da8a.jpg" alt="Provincial Hospital small building image" />
+                <span>Provincial Hospital</span>
+                <div class="progress-bar-bg" aria-label="36% progress">
+                  <div class="progress-bar-fill" style="width: 36%;"></div>
+                </div>
+                <span class="percentage">36%</span>
+              </li>
+            </ul>
+          </div>
+        </section>
+        <section class="right-panel">
+          <img src="https://storage.googleapis.com/a1aa/image/22050494-5579-49c4-0885-f2926534e6aa.jpg" alt="Google Map satellite view showing Mamburao Municipal Hall, Maru's Food Lounge & Beachfront Rooms, Alcaide's Grilled Burger & More, and surrounding area with roads and water bodies" />
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Trips</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    body, html {
+      height: 100%;
+      font-family: serif;
+      background: url('https://placehold.co/1920x400?text=Outdoor+building+with+trees+and+red+umbrella') no-repeat center center;
+      background-size: cover;
+    }
+    .overlay-container {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      max-width: 1200px;
+      margin: 2rem auto;
+    }
+    .table thead th {
+      font-weight: 600;
+      font-size: 0.75rem;
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .table tbody tr {
+      background-color: #e0e0e0;
+      height: 1.5rem;
+      font-size: 0.75rem;
+    }
+    .table tbody td {
+      vertical-align: middle;
+      padding: 0.25rem 0.5rem;
+      text-align: center;
+    }
+    .association-header {
+      font-family: serif;
+      font-weight: 600;
+      font-size: 0.75rem;
+      background-color: #f1f1f1;
+      border: 1px solid #dee2e6;
+      border-bottom: none;
+      padding: 0.25rem 0.5rem;
+      user-select: none;
+    }
+    .association-list {
+      max-height: 12rem;
+      overflow-y: auto;
+      border: 1px solid #dee2e6;
+      border-top: none;
+      background-color: #f9f9f9;
+      font-family: serif;
+      font-size: 0.75rem;
+      color: black;
+    }
+    .association-list div {
+      padding: 0.25rem 0.5rem;
+      border-bottom: 1px solid #dee2e6;
+      user-select: none;
+    }
+    .association-list div:last-child {
+      border-bottom: none;
+    }
+    .search-input {
+      height: 1.5rem;
+      font-size: 0.75rem;
+      padding-left: 0.25rem;
+      padding-right: 0.25rem;
+    }
+    .pagination-custom {
+      font-family: serif;
+      font-size: 0.75rem;
+      user-select: none;
+    }
+    .pagination-custom .page-item.disabled .page-link {
+      cursor: default;
+      color: #000;
+      background-color: transparent;
+      border: none;
+    }
+    .pagination-custom .page-link {
+      color: #000;
+      padding: 0.25rem 0.5rem;
+    }
+    .pagination-custom .page-item.active .page-link {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+      color: #fff;
+    }
+    .pagination-custom .page-link:hover {
+      text-decoration: underline;
+      background-color: transparent;
+    }
+    .header-icons button {
+      background: none;
+      border: none;
+      color: #000;
+      font-size: 1.25rem;
+      padding: 0;
+      margin-left: 1.5rem;
+    }
+    .header-icons button:focus {
+      outline: none;
+      box-shadow: none;
+    }
+    .header-title {
+      font-weight: 800;
+      font-size: 1rem;
+      user-select: none;
+    }
+    .search-label {
+      font-weight: 700;
+      font-size: 0.75rem;
+      user-select: none;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom border-2 border-secondary">
+    <button aria-label="Menu" class="btn p-0 text-dark" type="button">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="header-title">TRIPS</div>
+    <div class="header-icons d-flex align-items-center">
+      <button aria-label="User Account" type="button"><i class="fas fa-user"></i></button>
+      <button aria-label="Logout" type="button"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+  </header>
+
+  <main class="overlay-container">
+    <form class="d-flex align-items-center mb-3" role="search" onsubmit="return false;">
+      <label for="searchInput" class="search-label">Search</label>
+      <input id="searchInput" type="text" class="form-control search-input" />
+      <button type="submit" class="btn btn-link p-0 ms-2 text-secondary" aria-label="Search">
+        <i class="fas fa-search"></i>
+      </button>
+    </form>
+
+    <div class="d-flex gap-2 text-black">
+      <table class="table table-bordered table-sm w-40 m-0" style="table-layout: fixed;">
+        <thead class="bg-light">
+          <tr>
+            <th scope="col" class="text-center">Case <i class="fas fa-sort"></i></th>
+            <th scope="col" class="text-center">Name <i class="fas fa-sort"></i></th>
+            <th scope="col" class="text-center">Homepage <i class="fas fa-sort"></i></th>
+            <th scope="col" class="text-center">Steps <i class="fas fa-sort"></i></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-center">BL_AAA</td>
+            <td class="text-center">BL_Lion</td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr><td colspan="4"></td></tr>
+          <tr><td colspan="4"></td></tr>
+          <tr><td colspan="4"></td></tr>
+          <tr><td colspan="4"></td></tr>
+          <tr><td colspan="4"></td></tr>
+        </tbody>
+      </table>
+
+      <div class="d-flex flex-column w-20">
+        <div class="association-header">Association Name</div>
+        <div class="association-list flex-grow-1">
+          <div>TayTODA</div>
+          <div>MMCTODA</div>
+          <div>TSLTODA</div>
+          <div>KAMAPUMATODA</div>
+          <div>OMSCTODA</div>
+          <div>TAFTODA</div>
+          <div>OMPCTODA</div>
+          <div>DTATODA</div>
+          <div>BSECTODA</div>
+        </div>
+      </div>
+
+      <table class="table table-bordered table-sm w-40 m-0" style="table-layout: fixed;">
+        <thead class="bg-light">
+          <tr>
+            <th scope="col" class="text-center">Type <i class="fas fa-sort"></i></th>
+            <th scope="col" class="text-center">Status <i class="fas fa-sort"></i></th>
+            <th scope="col" class="text-center">Date <i class="fas fa-sort"></i></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="3"></td></tr>
+          <tr><td colspan="3"></td></tr>
+          <tr><td colspan="3"></td></tr>
+          <tr><td colspan="3"></td></tr>
+          <tr><td colspan="3"></td></tr>
+          <tr><td colspan="3"></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <nav aria-label="Page navigation" class="d-flex justify-content-center mt-4">
+      <ul class="pagination pagination-custom mb-0">
+        <li class="page-item disabled"><span class="page-link">-</span></li>
+        <li class="page-item active" aria-current="page"><span class="page-link">1</span></li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item"><a class="page-link" href="#">5</a></li>
+        <li class="page-item disabled"><span class="page-link">-</span></li>
+        <li class="page-item"><a class="page-link" href="#">31</a></li>
+        <li class="page-item"><a class="page-link" href="#">Next <i class="fas fa-arrow-right"></i></a></li>
+        <li class="page-item"><a class="page-link" href="#">Show all</a></li>
+      </ul>
+    </nav>
+  </main>
+</body>
+</html>

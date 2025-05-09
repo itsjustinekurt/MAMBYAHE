@@ -1,0 +1,230 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>People</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto+Slab&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Roboto Slab', serif;
+      background: url('https://placehold.co/1920x1080?text=Background+Image+of+building+and+trees') center center/cover no-repeat;
+      min-height: 100vh;
+      position: relative;
+      margin: 0;
+    }
+    
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0,0,0,0.5);
+      z-index: 0;
+    }
+    header {
+      background-color: rgba(209, 213, 219, 0.9); 
+      z-index: 10;
+      position: relative;
+    }
+    main > .container {
+      background-color: rgba(209, 213, 219, 0.9);
+      border-radius: 0.75rem;
+      padding: 1rem 1.5rem;
+      position: relative;
+      z-index: 10;
+      max-width: 1100px;
+    }
+    table thead th {
+      background-color: #9ca3af; 
+      color: black;
+      font-size: 0.75rem;
+      user-select: none;
+    }
+    table tbody tr:first-child {
+      background-color: #9ca3af; 
+      color: black;
+      user-select: none;
+    }
+    table tbody tr:not(:first-child) {
+      height: 1.5rem;
+      background-color: #9ca3af; 
+      user-select: none;
+    }
+    .dropdown-box {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14rem;
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 0 10px rgb(0 0 0 / 0.15);
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      user-select: none;
+    }
+    .dropdown-box ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .dropdown-box li {
+      padding: 0.5rem 1rem;
+      cursor: default;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #d1d5db;
+    }
+    .dropdown-box li:last-child {
+      border-bottom: none;
+    }
+    .pagination .page-item.disabled > .page-link {
+      color: #9ca3af;
+      pointer-events: none;
+      cursor: default;
+    }
+    .pagination .page-link {
+      font-size: 0.75rem;
+      color: #374151;
+    }
+    .pagination .page-item.active > .page-link {
+      background-color: #2563eb;
+      border-color: #2563eb;
+      color: white;
+    }
+    .pagination .page-link:hover {
+      text-decoration: underline;
+      color: #2563eb;
+    }
+    .pagination .hand-pointer {
+      cursor: pointer;
+      font-size: 0.75rem;
+      color: #374151;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <header class="d-flex justify-content-between align-items-center px-3 py-2">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn p-0 text-black" aria-label="Menu" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+      <span class="fw-bold text-black fs-5 user-select-none">PEOPLE</span>
+    </div>
+    <div class="d-flex align-items-center gap-4 text-black fs-5">
+      <button class="btn p-0 text-black" aria-label="User Account" type="button">
+        <i class="fas fa-user"></i>
+      </button>
+      <button class="btn p-0 text-black" aria-label="Logout" type="button">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="d-flex justify-content-center align-items-center flex-grow-1 py-4">
+    <div class="container position-relative">
+      
+      <form class="d-flex align-items-center gap-2 mb-3 user-select-none" role="search" aria-label="Search form">
+        <label for="search-category" class="fw-semibold text-black mb-0">Search</label>
+        <select id="search-category" name="search-category" class="form-select form-select-sm text-black" style="width: auto;">
+          <option>All</option>
+        </select>
+        <input
+          type="text"
+          id="search-input"
+          name="search-input"
+          class="form-control form-control-sm text-black"
+          style="width: 12rem;"
+          aria-label="Search input"
+        />
+        <button type="submit" class="btn btn-secondary btn-sm text-black px-3">Search</button>
+        <button type="button" class="btn btn-secondary btn-sm text-black px-3">Add</button>
+      </form>
+
+      <!-- Table -->
+      <div class="table-responsive">
+        <table class="table table-bordered text-black align-middle mb-0" style="font-size: 0.75rem;">
+          <thead>
+            <tr>
+              <th style="width: 3%;">No.</th>
+              <th style="width: 25%;">Name <i class="fas fa-sort ms-1"></i></th>
+              <th style="width: 20%;">Phone Number <i class="fas fa-sort ms-1"></i></th>
+              <th style="width: 25%;">Address <i class="fas fa-sort ms-1"></i></th>
+              <th style="width: 20%;">Email <i class="fas fa-sort ms-1"></i></th>
+              <th style="width: 7%;">Role <i class="fas fa-sort ms-1"></i></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1.</td>
+              <td>Maria Theresa Leonora</td>
+              <td>+63 999 999 999</td>
+              <td></td>
+              <td>example@gmail.com</td>
+              <td>Passenger</td>
+            </tr>
+            <tr style="height: 1.5rem; background-color: #9ca3af; user-select:none;"><td colspan="6"></td></tr>
+            <tr style="height: 1.5rem; background-color: #9ca3af; user-select:none;"><td colspan="6"></td></tr>
+            <tr style="height: 1.5rem; background-color: #9ca3af; user-select:none;"><td colspan="6"></td></tr>
+            <tr style="height: 1.5rem; background-color: #9ca3af; user-select:none;"><td colspan="6"></td></tr>
+            <tr style="height: 1.5rem; background-color: #9ca3af; user-select:none;"><td colspan="6"></td></tr>
+            <tr style="height: 1.5rem; background-color: #9ca3af; user-select:none;"><td colspan="6"></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      
+      <div class="dropdown-box">
+        <ul class="mb-0">
+          <li>Erwin Heusaff</li>
+          <li>Erwin Heusaff</li>
+          <li>Erwin Heusaff</li>
+          <li>Erwin Heusaff</li>
+        </ul>
+      </div>
+
+      <!-- Pagination -->
+      <nav aria-label="Pagination" class="d-flex justify-content-center mt-4 user-select-none">
+        <ul class="pagination pagination-sm mb-0">
+          <li class="page-item disabled">
+            <span class="page-link d-flex align-items-center gap-1">
+              <i class="fas fa-arrow-left"></i> Previous
+            </span>
+          </li>
+          <li class="page-item active" aria-current="page">
+            <span class="page-link">1</span>
+          </li>
+          <li class="page-item"><a class="page-link" href="#">2</a></li>
+          <li class="page-item"><a class="page-link" href="#">3</a></li>
+          <li class="page-item">
+            <span class="page-link hand-pointer"><i class="fas fa-hand-pointer"></i>5</span>
+          </li>
+          <li class="page-item"><span class="page-link">...</span></li>
+          <li class="page-item"><span class="page-link">31</span></li>
+          <li class="page-item">
+            <a class="page-link text-primary" href="#">Next</a>
+          </li>
+          <li class="page-item d-flex align-items-center gap-1">
+            <a class="page-link text-primary d-flex align-items-center gap-1" href="#">
+              Show all <i class="fas fa-arrow-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

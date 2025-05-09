@@ -1,0 +1,234 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <title>Reports</title>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: white;
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+    .navbar-custom {
+      border-bottom: 1px solid #dee2e6;
+      background: white;
+    }
+    .table thead th {
+      background-color: #d1d5db; 
+      color: #374151; 
+      font-weight: 600;
+      font-size: 0.75rem;
+      vertical-align: middle;
+    }
+    .table tbody tr:nth-child(odd) {
+      background-color: #f3f4f6; 
+    }
+    .table tbody tr.empty-row {
+      background-color: #e5e7eb; 
+      height: 2rem;
+    }
+    .pagination .page-link {
+      font-size: 0.75rem;
+      color: #3b82f6; 
+      cursor: pointer;
+    }
+    .pagination .page-item.active .page-link {
+      background-color: #3b82f6;
+      border-color: #3b82f6;
+      color: white;
+      cursor: default;
+    }
+    .pagination .page-link.disabled,
+    .pagination .page-link[aria-disabled="true"] {
+      color: #d1d5db;
+      pointer-events: none;
+      cursor: default;
+    }
+    .pagination .page-link:hover:not(.disabled):not([aria-disabled="true"]) {
+      color: #1e40af;
+      text-decoration: underline;
+    }
+    .dropdown-toggle::after {
+      margin-left: 0.255em;
+    }
+    .search-input-group .form-control {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+    .search-input-group .btn {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+    .table-responsive {
+      max-height: 280px;
+      overflow-y: auto;
+    }
+    .bg-image {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 15rem;
+      object-fit: cover;
+      z-index: -1;
+    }
+  </style>
+</head>
+<body>
+  
+  <nav class="navbar navbar-expand navbar-custom px-3">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn p-0 text-secondary" aria-label="Open menu">
+        <i class="fas fa-bars fs-5"></i>
+      </button>
+      <span class="fw-semibold text-dark fs-6">Reports</span>
+    </div>
+    <div class="ms-auto d-flex align-items-center gap-4 text-secondary fs-5">
+      <button class="btn p-0 text-secondary" aria-label="User profile" type="button">
+        <i class="fas fa-user"></i>
+      </button>
+      <button class="btn p-0 text-secondary" aria-label="Logout" type="button">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </nav>
+
+  
+  <img
+    src="c:\Users\ACER\Downloads\331ef22b-0b51-4aa6-829b-37d267a88848 (1).jpg"
+    alt="Background image of an outdoor scene with a building, trees, and umbrellas"
+    class="bg-image"
+  />
+
+  
+  <div class="container my-4 position-relative" style="z-index: 1;">
+    
+    <form class="d-flex flex-wrap align-items-center gap-2 mb-3" role="search" aria-label="Search and filter form">
+      <label for="search-filter" class="fw-semibold mb-0 me-2">Search</label>
+
+      <select
+        class="form-select form-select-sm me-2"
+        id="search-filter"
+        aria-label="Search filter"
+        style="width: auto; min-width: 8rem;"
+      >
+        <option>This Week</option>
+        <option>Previous Week</option>
+        <option>This Month</option>
+        <option>Previous Month</option>
+        <option>This Year</option>
+        <option>Previous Year</option>
+      </select>
+
+      <div class="input-group input-group-sm search-input-group me-2" style="width: 14rem;">
+        <input
+          type="search"
+          class="form-control"
+          placeholder=""
+          aria-label="Search input"
+          id="search"
+        />
+        <button class="btn btn-outline-secondary" type="submit" aria-label="Search">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+
+      <select
+        class="form-select form-select-sm ms-auto"
+        id="associations-filter"
+        aria-label="Associations filter"
+        style="width: auto; min-width: 8rem;"
+      >
+        <option>Associations</option>
+      </select>
+    </form>
+
+    
+    <div class="table-responsive border rounded shadow-sm">
+      <table class="table table-bordered table-sm mb-0 text-nowrap align-middle" style="font-size: 0.75rem;">
+        <thead>
+          <tr>
+            <th class="text-center" style="width: 3rem;">No.</th>
+            <th>Respondent</th>
+            <th>
+              Associations Name
+              <i class="fas fa-sort ms-1"></i>
+            </th>
+            <th>
+              Address
+              <i class="fas fa-sort ms-1"></i>
+            </th>
+            <th>Reason</th>
+            <th class="text-end" style="width: 8rem;">
+              Date and Time
+              <i class="fas fa-sort ms-1"></i>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="bg-light">
+            <td class="text-center">1.</td>
+            <td>JulBarakutyan</td>
+            <td>TayTOHa</td>
+            <td>Tapantaran</td>
+            <td style="font-size: 0.65rem; line-height: 1.1;">
+              Mahal maningi ni JulBarakutyan sa estudyante!
+            </td>
+            <td class="text-end">01-20-25 3:45 PM</td>
+          </tr>
+          <tr class="empty-row"><td colspan="6"></td></tr>
+          <tr class="empty-row"><td colspan="6"></td></tr>
+          <tr class="empty-row"><td colspan="6"></td></tr>
+          <tr class="empty-row"><td colspan="6"></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <nav
+      aria-label="Pagination"
+      class="d-flex justify-content-end align-items-center gap-2 mt-3 text-secondary"
+      style="font-size: 0.75rem; user-select: none;"
+    >
+      <ul class="pagination mb-0">
+        <li class="page-item disabled" aria-disabled="true">
+          <span class="page-link d-flex align-items-center gap-1" aria-label="Previous page">
+            <i class="fas fa-arrow-left"></i> Previous
+          </span>
+        </li>
+        <li class="page-item active" aria-current="page">
+          <span class="page-link">1</span>
+        </li>
+        <li class="page-item"><a class="page-link" href="#">2</a></li>
+        <li class="page-item"><a class="page-link" href="#">4</a></li>
+        <li class="page-item"><a class="page-link" href="#">3</a></li>
+        <li class="page-item">
+          <a class="page-link" href="#" title="Pointer hand icon">
+            <i class="fas fa-hand-pointer"></i>
+          </a>
+        </li>
+        <li class="page-item"><a class="page-link" href="#">5</a></li>
+        <li class="page-item disabled"><span class="page-link">...</span></li>
+        <li class="page-item"><a class="page-link" href="#">31</a></li>
+      </ul>
+      <a href="#" class="text-primary text-decoration-none ms-3">Next</a>
+      <a href="#" class="text-primary text-decoration-none d-flex align-items-center gap-1">
+        Show all <i class="fas fa-arrow-right"></i>
+      </a>
+    </nav>
+  </div>
+</body>
+</html>
