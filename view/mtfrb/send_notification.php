@@ -55,83 +55,161 @@ while ($row = $result->fetch_assoc()) {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Push-Notification</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Send Notification - MTFRB</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
   <style>
-    body { font-family: 'Inter', sans-serif; background: url('https://placehold.co/1920x1080?text=Background+Image+of+building+and+trees') center/cover no-repeat; min-height: 100vh; margin: 0; }
+    body { font-family: 'Inter', sans-serif; min-height: 100vh; margin: 0; }
     .header { height: 56px; border-bottom: 1px solid #dee2e6; background-color: #fff; opacity: 0.95; }
+    .bg-light-custom { background-color: #f8fafc !important; }
+    .table { width: 100%; }
+    .table th { font-weight: 600; color: #374151; }
+    .table td { color: #4b5563; }
+    .table-responsive { overflow-x: auto; }
     .content-container { background-color: rgba(255 255 255 / 0.95); border-radius: 0.75rem; padding: 1rem 1.5rem; max-width: 100%; box-shadow: 0 0 10px rgb(0 0 0 / 0.1); margin: 1rem auto 2rem; }
-    table { font-size: 9px; width: 100%; border-collapse: collapse; }
-    thead tr { background-color: #d1d5db; color: #374151; }
-    thead th { padding: 0.25rem 0.5rem; text-align: left; vertical-align: middle; font-weight: 600; }
-    tbody tr:nth-child(odd) { background-color: #f3f4f6; color: #1f2937; }
-    tbody tr:nth-child(even) { background-color: #d1d5db; height: 24px; }
-    tbody td { padding: 0.25rem 0.5rem; vertical-align: middle; }
-    .fa-sort { font-size: 0.6rem; margin-left: 0.15rem; }
-    .btn-add { color: #4b5563; font-size: 1.25rem; background: none; border: none; cursor: pointer; }
-    .btn-add:hover { color: #111827; }
-    .pagination { font-size: 9px; justify-content: center; margin-top: 1.5rem; }
-    .page-link { color: #2563eb; cursor: pointer; padding: 0.15rem 0.5rem; }
-    .page-link.disabled { color: #d1d5db; cursor: default; }
-    .page-item.active .page-link { background-color: #2563eb; border-color: #2563eb; color: white; font-weight: 600; padding: 0.15rem 0.5rem; }
-    .pagination .dots { padding: 0.15rem 0.5rem; user-select: none; color: #374151; }
-    /* Sidebar styles from dashboard */
-    .sidebar-overlay { display: none !important; }
-    .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #8fa195; z-index: 1050; transform: none !important; transition: none; border-top-right-radius: 2rem; }
-    .sidebar.open { transform: none; }
-    .sidebar-header { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem 1rem 1.5rem; }
-    .sidebar-logo { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; }
-    .sidebar-title { font-weight: 800; font-size: 1.2rem; color: #fff; }
-    .sidebar-subtitle { font-size: 0.85rem; color: #e0e7ef; font-weight: 600; }
-    .sidebar-nav { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.5rem; color: #222; font-weight: 500; font-size: 1.05rem; border-radius: 0.5rem; text-decoration: none; transition: background 0.2s; }
-    .sidebar-link:hover { background: #e5e7eb; color: #111; }
-    .sidebar-link i { font-size: 1.3rem; }
-    .sidebar-close { display: none !important; }
-    @media (max-width: 600px) { .sidebar { width: 90vw; } .main-container, .container.py-4, .content-container { margin-left: 0 !important; } }
+    table { font-size: 0.875rem; width: 100%; border-collapse: collapse; }
+    th { font-size: 0.75rem; font-weight: 600; color: #374151; background-color: #f8fafc; padding: 0.5rem; }
+    td { font-size: 0.75rem; color: #4b5563; padding: 0.5rem; }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    .btn-add { font-size: 0.75rem; padding: 0.25rem 0.75rem; background-color: #2563eb; color: white; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+    .btn-add:hover { background-color: #1d4ed8; }
+    .fas { font-size: 0.75rem; margin-right: 0.25rem; }
+    .pagination { font-size: 0.75rem; margin-top: 1rem; }
+    .pagination .page-link { color: #2563eb; }
+    .pagination .page-item.active .page-link { background-color: #2563eb; color: white; }
+    .search-label { font-size: 0.75rem; color: #374151; margin-right: 0.5rem; }
+    .complainee-link { color: #2563eb; text-decoration: underline; cursor: pointer; }
+    .complainee-link:hover { color: #1d4ed8; }
+    /* Make table more compact */
+    .table-responsive {
+        overflow-x: auto;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1040;
+        display: none;
+        transition: opacity 0.3s;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        height: calc(100vh - 60px);
+        width: 260px;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        z-index: 99;
+        border-top-right-radius: 2rem;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        direction: rtl;
+    }
+
+    .sidebar-section {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 1.5rem 1.5rem 0.5rem 1.5rem;
+        padding-left: 0.5rem;
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem 1.5rem;
+        color: rgba(255,255,255,0.8);
+        font-weight: 500;
+        font-size: 1rem;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        position: relative;
+        direction: ltr;
+    }
+
+    .sidebar-link::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 3px;
+        height: 0;
+        background: var(--primary-color);
+        border-radius: 1.5px;
+        transition: height 0.2s ease;
+    }
+
+    .sidebar-link.active,
+    .sidebar-link:hover {
+        color: white;
+        background: rgba(255,255,255,0.1);
+    }
+
+    .sidebar-link.active::before,
+    .sidebar-link:hover::before {
+        height: 100%;
+        top: 0;
+    }
+    .content-container { margin-left: 0 !important; }
   </style>
 </head>
 <body>
-<div class="container py-4">
-    <div class="d-flex align-items-center mb-4">
-        <h4 class="mb-0">SEND NOTIFICATION</h4>
-    </div>
-    <div class="d-flex justify-content-end mb-2">
-      <button class="btn-add" aria-label="Add new notification" data-bs-toggle="modal" data-bs-target="#notifModal">
-        <i class="fas fa-plus-square"></i>
-      </button>
-    </div>
-
-    <table>
-      <thead>
-        <tr>
-          <th style="width:15%">Receiver <i class="fas fa-sort"></i></th>
-          <th style="width:55%">Message</th>
-          <th style="width:15%">Date <i class="fas fa-sort"></i></th>
-          <th style="width:15%">Time <i class="fas fa-sort"></i></th>
-        </tr>
-      </thead>
-      <tbody>
+  <?php include 'header.php'; ?>
+  <?php include 'sidebar.php'; ?>
+  <div class="container-fluid" style="margin-left:260px;">
+    <main class="flex-grow-1">
+      <div class="container-fluid bg-white-opacity rounded-3 shadow-sm mt-4">
+        <div class="p-4">
+          <h1 class="h5 fw-semibold mb-4">Send Notification</h1>
+          <div class="d-flex justify-content-end mb-4">
+              <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#notifModal">
+                  <i class="fas fa-plus"></i> Send Notification
+              </button>
+          </div>
+          <div class="table-responsive">
+              <table class="table table-sm mb-0 text-nowrap align-middle">
+                  <thead class="bg-light-custom">
+                      <tr>
+                          <th>ID</th>
+                          <th>Message</th>
+                          <th>Receiver</th>
+                          <th>Date</th>
+                          <th>Status</th>
+                      </tr>
+                  </thead>
+                  <tbody>
         <?php foreach ($notifications as $notif): ?>
         <tr>
-          <td>
-            <?php
-              if ($notif['user_type'] === 'driver') {
-                echo 'Drivers';
-              } elseif ($notif['user_type'] === 'passenger') {
-                echo 'Passengers';
-              } else {
-                echo '-';
-              }
-            ?>
-          </td>
+          <td><?= htmlspecialchars($notif['id']) ?></td>
           <td><?= htmlspecialchars($notif['message']) ?></td>
+          <td>
+            <?php if ($notif['receiver_name']): ?>
+              <?= htmlspecialchars($notif['receiver_name']) ?>
+            <?php else: ?>
+              <?php if ($notif['user_type'] === 'driver'): ?>
+                All Drivers
+              <?php elseif ($notif['user_type'] === 'passenger'): ?>
+                All Passengers
+              <?php else: ?>
+                -
+              <?php endif; ?>
+            <?php endif; ?>
+          </td>
           <td><?= date('m-d-y', strtotime($notif['created_at'])) ?></td>
-          <td><?= date('g:i A', strtotime($notif['created_at'])) ?></td>
+          <td><?= htmlspecialchars($notif['status']) ?></td>
         </tr>
         <?php endforeach; ?>
       </tbody>

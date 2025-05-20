@@ -3,29 +3,39 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Check if driver is logged in
 if (!isset($_SESSION['driver_id'])) {
     header("Location: login.php");
     exit();
 }
 
-// Database credentials
 $db_host = 'localhost';
 $db_name = 'user_auth';
 $db_user = 'root';
 $db_pass = '';
 
 try {
-    // Create PDO connection
     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name", $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Get driver information
     $stmt = $pdo->prepare("
         SELECT d.*, 
                COUNT(DISTINCT b.id) as total_rides,
                COALESCE(AVG(r.rating), 0) as average_rating,
-               COUNT(DISTINCT r.id) as total_reviews
+               COUNT(DISTINCT r.id) as total_reviews,
+               CASE 
+                   WHEN d.profile_pic LIKE 'driver_%' THEN SUBSTRING_INDEX(d.profile_pic, '_', -1)
+                   ELSE d.profile_pic
+               END as profile_pic,
+               CASE 
+                   WHEN d.profile_pic LIKE '%.jpg' THEN '.jpg'
+                   WHEN d.profile_pic LIKE '%.png' THEN '.png'
+                   WHEN d.profile_pic LIKE '%.jpeg' THEN '.jpeg'
+                   ELSE ''
+               END as profile_ext,
+               CASE 
+                   WHEN d.profile_pic LIKE 'driver_%' THEN ''
+                   ELSE 'driver_'
+               END as prefix
         FROM driver d
         LEFT JOIN bookings b ON d.driver_id = b.driver_id AND b.status = 'completed'
         LEFT JOIN driver_reviews r ON d.driver_id = r.driver_id
@@ -36,7 +46,6 @@ try {
     $stmt->execute(['driver_id' => $_SESSION['driver_id']]);
     $driver = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Get recent reviews
     $stmt = $pdo->prepare("
         SELECT r.*, p.fullname as passenger_name, p.profile_pic
         FROM driver_reviews r
@@ -49,7 +58,6 @@ try {
     $stmt->execute(['driver_id' => $_SESSION['driver_id']]);
     $recent_reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get all reviews
     $stmt = $pdo->prepare("
         SELECT r.*, p.fullname as passenger_name, p.profile_pic, b.created_at as booking_date
         FROM driver_reviews r
@@ -75,167 +83,121 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Driver Profile</title>
     
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- SweetAlert2 CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css">
     
     <style>
+        /* Layout */
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 1000;
+        }
+
+        .content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        /* Profile Header */
         .profile-header {
             background: linear-gradient(135deg, #198754 0%, #157347 100%);
             color: white;
             padding: 2rem 0;
-            margin-bottom: 2rem;
+            margin-top: 60px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        
-        .profile-pic {
+
+        .profile-header .container {
+            padding: 1rem;
+        }
+
+        .profile-header .avatar {
             width: 150px;
             height: 150px;
+            border-radius: 50%;
             object-fit: cover;
             border: 4px solid white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
-        
-        .badge {
-            font-size: 1rem;
-            padding: 0.5rem 1rem;
+
+        .profile-header .info {
+            margin-left: 2rem;
         }
-        
-        .badge i {
-            font-size: 1.1rem;
+
+        .profile-header h1 {
+            margin-bottom: 0.5rem;
+            color: white;
         }
-        
+
+        .profile-header p {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        /* Stats Cards */
         .stats-card {
             background: white;
-            border-radius: 10px;
             padding: 1.5rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
         }
-        
+
+        .stats-card h3 {
+            color: #333;
+        }
+
+        .stats-card p {
+            color: #666;
+            margin-bottom: 0;
+        }
+
+        /* Review Cards */
         .review-card {
             background: white;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .star-rating {
-            color: #ffc107;
-        }
-        
-        .edit-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-        }
-        
-        .status-badge {
-            font-size: 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 0.5rem;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: auto;
-        }
-        
-        .status-badge i {
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-        }
-        
-        .status-icon {
-            cursor: pointer;
-            padding: 10px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s ease;
-        }
-        
-        .status-icon:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
-        }
-
-        .review-item {
-            padding: 1rem;
+            padding: 1.5rem;
             border-radius: 8px;
-            background: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
         }
 
-        /* Sidebar Styles */
-        .sidebar-toggle {
-            position: fixed;
-            top: 1rem;
-            left: 1rem;
-            z-index: 1000;
-            color: #198754;
-            font-size: 1.5rem;
-            background: white;
-            border-radius: 50%;
+        .review-card .reviewer-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .review-card .reviewer-avatar {
             width: 40px;
             height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            border: none;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100vh;
-            background: white;
-            z-index: 1001;
-            transition: all 0.3s ease;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-        }
-
-        .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-header {
-            padding: 2rem 1rem;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-        }
-
-        .sidebar-profile-pic {
-            width: 80px;
-            height: 80px;
             border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid #198754;
+            margin-right: 1rem;
         }
 
-        .sidebar-menu {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
+        .review-card .reviewer-name {
+            font-weight: 600;
             color: #333;
-            text-decoration: none;
-            transition: all 0.3s ease;
         }
 
-        .sidebar-link:hover {
+        .review-card .review-date {
+            color: #666;
+            font-size: 0.9rem;
             background: #f8f9fa;
             color: #198754;
         }
@@ -265,7 +227,6 @@ try {
             display: block;
         }
 
-        /* Adjust main content when sidebar is active */
         .container {
             transition: all 0.3s ease;
         }
@@ -274,7 +235,6 @@ try {
             margin-left: 280px;
         }
 
-        /* Bottom Sheet Styles */
         .bottom-sheet {
             position: fixed;
             left: 0;
@@ -387,14 +347,33 @@ try {
     </style>
 </head>
 <body class="bg-light">
-    <?php include 'components/driver_sidebar.php'; ?>
-    
-    <!-- Profile Header -->
-    <div class="profile-header">
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <?php 
+            // Define base URL if not already defined
+            if (!defined('BASE_URL')) {
+                define('BASE_URL', 'http://localhost:3000/MAMBYAHE/view');
+            }
+            include 'components/driver_sidebar.php'; 
+            ?>
+        </aside>
+
+        <!-- Content -->
+        <main class="content">
+            <div class="profile-header">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-3 text-center">
-                    <img src="<?php echo !empty($driver['profile_pic']) ? './uploads/driver_ids/' . $driver['profile_pic'] : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; ?>" 
+                    <img src="<?php 
+                        $driverPic = '';
+                        if (!empty($driver['driver_id']) && !empty($driver['profile_pic'])) {
+                            // Remove any existing extension before adding new one
+                            $baseName = pathinfo($driver['profile_pic'], PATHINFO_FILENAME);
+                            $driverPic = $driver['prefix'] . $driver['driver_id'] . '_' . $baseName . $driver['profile_ext'];
+                        }
+                        echo !empty($driverPic) ? 'http://localhost:3000/MAMBYAHE/view/uploads/driver_ids/' . $driverPic : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg';
+                    ?>" 
                          alt="Profile Picture" 
                          class="profile-pic rounded-circle mb-3"
                          onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'">
@@ -441,7 +420,6 @@ try {
     </div>
 
     <div class="container">
-        <!-- Stats Row -->
         <div class="row mb-4">
             <div class="col-md-4">
                 <div class="stats-card text-center">
@@ -558,7 +536,7 @@ try {
                                 <div class="mb-3">
                                     <label class="form-label">Profile Picture</label>
                                     <div class="d-flex align-items-center mb-2">
-                                        <img src="<?php echo !empty($driver['profile_pic']) ? './uploads/driver_ids/' . $driver['profile_pic'] : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; ?>" 
+                                        <img src="<?php echo !empty($driver['profile_pic']) ? '../uploads/driver_ids/' . $driver['profile_pic'] : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; ?>" 
                                              alt="Profile Picture" 
                                              class="rounded-circle me-3"
                                              style="width: 100px; height: 100px; object-fit: cover;"
@@ -652,7 +630,7 @@ try {
                             <?php foreach ($all_reviews as $review): ?>
                                 <div class="review-item mb-4">
                                     <div class="d-flex align-items-center mb-2">
-                                        <img src="<?php echo !empty($review['profile_pic']) ? './uploads/' . $review['profile_pic'] : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; ?>" 
+                                        <img src="<?php echo !empty($review['profile_pic']) ? '/MAMBYAHE/uploads/' . $review['profile_pic'] : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; ?>" 
                                              alt="Passenger" 
                                              class="rounded-circle me-3"
                                              style="width: 50px; height: 50px; object-fit: cover;">
@@ -797,11 +775,30 @@ try {
         }
 
         function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
+            const sidebar = document.querySelector('.sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
+            
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+            }
+            
+            if (overlay) {
+                overlay.classList.toggle('active');
+            }
+
+            // Update content margin when sidebar is toggled
+            const content = document.querySelector('.content');
+            if (content) {
+                if (sidebar && sidebar.classList.contains('active')) {
+                    content.style.marginLeft = '280px';
+                } else {
+                    content.style.marginLeft = '0';
+                }
+            }
         }
     </script>
+            </div>
+        </main>
+    </div>
 </body>
-</html> 
+</html>

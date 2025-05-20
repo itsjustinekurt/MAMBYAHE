@@ -1,20 +1,16 @@
 <?php
+session_start();
 require_once '../db_connect.php';
 header('Content-Type: application/json');
 
 try {
     // Get unread notifications count
-    $stmt = $pdo->prepare("
-        SELECT COUNT(*) 
-        FROM notifications 
-        WHERE user_type = 'admin' 
-        AND status = 'unread'
-    ");
-    $stmt->execute();
-    $unread_count = $stmt->fetchColumn();
+    $sql = "SELECT COUNT(*) as count FROM notifications WHERE user_type = 'admin' AND status = 'unread'";
+    $result = $conn->query($sql);
+    $unread_count = $result->fetch_assoc()['count'];
 
     // Get notifications with related data
-    $stmt = $pdo->prepare("
+    $sql = "
         SELECT n.*, 
                p.fullname as passenger_name, 
                p.profile_pic, 
@@ -33,10 +29,10 @@ try {
         WHERE n.user_type = 'admin'
         ORDER BY n.created_at DESC 
         LIMIT 10
-    ");
+    ";
     
-    $stmt->execute();
-    $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $result = $conn->query($sql);
+    $notifications = $result->fetch_all(MYSQLI_ASSOC);
 
     // Format the notifications for display
     $formatted_notifications = array_map(function($notif) {

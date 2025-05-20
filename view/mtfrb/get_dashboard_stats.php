@@ -1,29 +1,37 @@
 <?php
+session_start();
 require_once '../db_connect.php';
 header('Content-Type: application/json');
 
 try {
-    // Get total associations
-    $stmt = $pdo->query("SELECT COUNT(*) FROM association");
-    $associations = $stmt->fetchColumn();
+    $stats = [
+        'success' => true,
+        'associations' => 0,
+        'drivers' => 0,
+        'passengers' => 0
+    ];
+
+    // Try to get total associations
+    try {
+        $result = $conn->query("SELECT COUNT(*) as count FROM association");
+        $stats['associations'] = $result->fetch_assoc()['count'];
+    } catch (Exception $e) {
+        // If association table doesn't exist, just use default value
+    }
 
     // Get total drivers
-    $stmt = $pdo->query("SELECT COUNT(*) FROM driver");
-    $drivers = $stmt->fetchColumn();
+    $result = $conn->query("SELECT COUNT(*) as count FROM driver");
+    $stats['drivers'] = $result->fetch_assoc()['count'];
 
     // Get total passengers
-    $stmt = $pdo->query("SELECT COUNT(*) FROM passenger");
-    $passengers = $stmt->fetchColumn();
+    $result = $conn->query("SELECT COUNT(*) as count FROM passenger");
+    $stats['passengers'] = $result->fetch_assoc()['count'];
 
-    echo json_encode([
-        'success' => true,
-        'associations' => $associations,
-        'drivers' => $drivers,
-        'passengers' => $passengers
-    ]);
-} catch (PDOException $e) {
+    echo json_encode($stats);
+} catch (Exception $e) {
+    http_response_code(500);
     echo json_encode([
         'success' => false,
         'message' => 'Database error: ' . $e->getMessage()
     ]);
-} 
+}

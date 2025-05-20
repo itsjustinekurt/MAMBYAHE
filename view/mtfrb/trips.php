@@ -64,56 +64,23 @@ while ($row = $result->fetch_assoc()) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en">y
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Trips</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trips - MTFRB</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-  <style>
-    body { background: url('https://placehold.co/1920x1080?text=Background+Image+Placeholder') center/cover no-repeat; font-family: 'Segoe UI', sans-serif; min-height: 100vh; margin: 0; padding: 0; }
-    .container.py-4, .main-container, main.container, .content-container { margin-left: 260px !important; }
-    .bg-white-opacity { background-color: rgba(255, 255, 255, 0.9); }
-    .table thead th { background-color: #d1d5db; cursor: pointer; user-select: none; font-size: 0.75rem; color: #374151; }
-    .table thead th i { margin-left: 0.25rem; font-size: 0.6rem; color: #374151; }
-    .pagination .page-link { font-size: 0.75rem; color: #2563eb; border: none; background: none; }
-    .pagination .page-item.active .page-link { background-color: #2563eb; color: white; font-weight: 600; border-radius: 0.25rem; }
-    .pagination .page-link:hover { background-color: #e5e7eb; color: #2563eb; }
-    .form-select { font-size: 0.75rem; color: #374151; max-width: 8rem; }
-    .form-control { font-size: 0.75rem; max-width: 12rem; }
-    .search-label { font-weight: 600; font-size: 0.875rem; color: #111827; user-select: none; margin-right: 0.5rem; }
-    .header-title { font-weight: 800; font-size: 1.125rem; user-select: none; }
-    .header-icons i { font-size: 1.25rem; color: #374151; cursor: pointer; }
-    .header-icons i:focus { outline: none; box-shadow: 0 0 0 2px #2563eb; border-radius: 0.25rem; }
-    .btn-link { font-size: 0.75rem; color: #2563eb; text-decoration: none; }
-    .btn-link:hover { text-decoration: underline; color: #1d4ed8; }
-    .pagination .disabled .page-link { color: #9ca3af; cursor: not-allowed; pointer-events: none; }
-    /* Sidebar styles (copied from dashboard) */
-    .sidebar-overlay { display: none !important; }
-    .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #8fa195; z-index: 1050; transform: none !important; transition: none; border-top-right-radius: 2rem; }
-    .sidebar.open { transform: none; }
-    .sidebar-header { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem 1rem 1.5rem; }
-    .sidebar-logo { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; }
-    .sidebar-title { font-weight: 800; font-size: 1.2rem; color: #fff; }
-    .sidebar-subtitle { font-size: 0.85rem; color: #e0e7ef; font-weight: 600; }
-    .sidebar-nav { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.5rem; color: #222; font-weight: 500; font-size: 1.05rem; border-radius: 0.5rem; text-decoration: none; transition: background 0.2s; }
-    .sidebar-link:hover { background: #e5e7eb; color: #111; }
-    .sidebar-link i { font-size: 1.3rem; }
-    .sidebar-close { display: none !important; }
-    @media (max-width: 600px) { .sidebar { width: 90vw; } .container.py-4, .main-container, main.container, .content-container { margin-left: 0 !important; } }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <?php include 'header.php'; ?>
   <?php include 'sidebar.php'; ?>
-  <div class="container py-4" style="margin-left:260px;">
-    <div class="d-flex align-items-center mb-4">
-        <h4 class="mb-0">TRIPS</h4>
-    </div>
-    <main class="flex-grow-1 p-4">
-      <div class="container-fluid bg-white-opacity rounded-3 p-4 shadow-sm">
+  <div class="container-fluid" style="margin-left:260px;">
+    <main class="flex-grow-1">
+      <div class="container-fluid bg-white-opacity rounded-3 shadow-sm mt-4">
+        <div class="p-4">
+          <h1 class="h5 fw-semibold mb-4">Trips</h1>
         <form class="d-flex flex-wrap align-items-center gap-3 mb-4" method="get" id="searchForm">
           <label for="search" class="search-label mb-0">Search</label>
           <div class="position-relative flex-grow-1 flex-shrink-1" style="max-width: 12rem;">

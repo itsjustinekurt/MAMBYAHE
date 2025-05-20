@@ -1,32 +1,127 @@
 <?php 
 session_start();
-include('sidebar.php');
-$user_id = $_SESSION['passenger_id'];
+include('components/passenger_sidebar_template.php');
 
+// Add header with page title
+$page_title = 'Ride Details';
+
+// Header
+?>
+<div class="header">
+    <div class="header-left">
+        <button class="menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+            <i class="fas fa-bars fs-4"></i>
+        </button>
+        <h5 class="mb-0"><?php echo htmlspecialchars($page_title); ?></h5>
+    </div>
+    <div class="header-right">
+        <div class="notification-container">
+            <div class="notification-icon dropdown">
+                <a class="dropdown-toggle text-dark" href="#" role="button" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bell fs-4"></i>
+                </a>
+                <div class="dropdown-menu notification-dropdown" aria-labelledby="notifDropdown">
+                    <div class="notification-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">Notifications</h6>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item text-center">
+                        <button class="btn btn-link text-muted">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.header {
+    position: fixed;
+    top: 0;
+    left: 250px;
+    right: 0;
+    height: 60px;
+    background: white;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 1002;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.menu-toggle:hover {
+    color: #000;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.notification-container {
+    position: relative;
+}
+
+.notification-icon {
+    cursor: pointer;
+}
+
+.notification-dropdown {
+    width: 350px;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.notification-header {
+    margin-bottom: 10px;
+}
+
+.notification-header h6 {
+    margin: 0;
+    font-size: 0.9rem;
+}
+</style>
+
+<?php
 $conn = new mysqli("localhost", "root", "", "user_auth");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
 // Query to get passenger name
-$sql_passenger = "SELECT fullname FROM passenger WHERE passenger_id = ?";
-$stmt_passenger = $conn->prepare($sql_passenger);
-$stmt_passenger->bind_param("i", $user_id);
-$stmt_passenger->execute();
-$stmt_passenger->bind_result($passenger_name);
-$stmt_passenger->fetch();
-$stmt_passenger->close();
+
 
 // Query to get pending bookings
 $sql_pending = "
 SELECT b.*, d.fullname AS driver_name, d.phone AS driver_phone
 FROM bookings b
 JOIN driver d ON b.driver_id = d.driver_id
-WHERE b.passenger_name = ? AND b.status = 'pending'
+WHERE b.passenger_id = ? AND b.status = 'pending'
 ORDER BY b.id DESC
 ";
 $stmt_pending = $conn->prepare($sql_pending);
-$stmt_pending->bind_param("s", $passenger_name);
+$stmt_pending->bind_param("i", $passenger_id);
 $stmt_pending->execute();
 $result_pending = $stmt_pending->get_result();
 
@@ -35,11 +130,11 @@ $sql_history = "
 SELECT b.*, d.fullname AS driver_name, d.phone AS driver_phone
 FROM bookings b
 JOIN driver d ON b.driver_id = d.driver_id
-WHERE b.passenger_name = ? AND b.status IN ('confirmed','rejected','completed','cancelled')
+WHERE b.passenger_id = ? AND b.status IN ('confirmed','rejected','completed','cancelled')
 ORDER BY b.id DESC
 ";
 $stmt_history = $conn->prepare($sql_history);
-$stmt_history->bind_param("s", $passenger_name);
+$stmt_history->bind_param("i", $passenger_id);
 $stmt_history->execute();
 $result_history = $stmt_history->get_result();
 ?>
@@ -54,6 +149,46 @@ $result_history = $stmt_history->get_result();
   <style>
     body {
       background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+    }
+
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 250px;
+      background: white;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      z-index: 1001;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #dee2e6;
+    }
+
+    .sidebar-header {
+      padding: 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .sidebar-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+      height: calc(100vh - 40px);
+      overflow-y: auto;
     }
     .ride-card {
       background-color: white;
@@ -92,18 +227,12 @@ $result_history = $stmt_history->get_result();
 </head>
 <body>
 
-  <!-- Sidebar Toggle Button -->
-  <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
-    <i class="fas fa-bars"></i> Menu
-  </button>
-
   <!-- Sidebar -->
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title">Menu</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h5 class="sidebar-title">Menu</h5>
     </div>
-    <div class="offcanvas-body">
+    <div class="sidebar-content">
       <div class="user-card text-center">
         <!-- Display profile picture or default icon -->
         <img src="<?= htmlspecialchars($profilePic) ?>" alt="Profile Picture" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; margin-bottom: 10px;">
@@ -126,7 +255,7 @@ $result_history = $stmt_history->get_result();
   </div>
 
   <!-- Main Content -->
-  <div class="container mt-4">
+  <div class="main-content" style="margin-left: 250px; padding: 20px;">
     <h4 class="mb-3">My Rides</h4>
     <div class="d-flex mb-3">
       <button class="btn btn-outline-secondary me-2 active" id="pendingTabBtn" onclick="showTab('pending')">Pending</button>

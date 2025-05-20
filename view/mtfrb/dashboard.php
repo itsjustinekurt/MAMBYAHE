@@ -1,5 +1,25 @@
 <?php
 require_once '../db_connect.php';
+
+// Get total passengers and drivers count
+$passengers_count = 0;
+$drivers_count = 0;
+
+try {
+    // Get total passengers
+    $result = $conn->query("SELECT COUNT(*) as count FROM passenger");
+    if ($row = $result->fetch_assoc()) {
+        $passengers_count = $row['count'];
+    }
+
+    // Get total drivers
+    $result = $conn->query("SELECT COUNT(*) as count FROM driver");
+    if ($row = $result->fetch_assoc()) {
+        $drivers_count = $row['count'];
+    }
+} catch (Exception $e) {
+    error_log("Error fetching stats: " . $e->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,229 +30,363 @@ require_once '../db_connect.php';
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="styles.css">
     <style>
-        body { background: #f5f7fa; }
-        .dashboard-card { background: #fff; border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .stat-label { font-size: 0.9rem; color: #888; }
-        .stat-value { font-size: 1.3rem; font-weight: bold; }
-        .icon-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
-        .icon-dropoff { background: #e0e7ff; color: #3730a3; }
-        #map { height: 350px; border-radius: 1rem; }
-        /* Sidebar styles */
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.2);
-            z-index: 1040;
-            display: none;
-        }
-        .sidebar {
-            position: fixed;
-            top: 0; left: 0;
-            height: 100vh;
-            width: 250px;
-            background: #232e3c;
-            z-index: 1050;
-            border-top-right-radius: 2rem;
-            box-shadow: 2px 0 12px rgba(44,62,80,0.07);
-            transition: transform 0.3s;
-            display: flex;
-            flex-direction: column;
-        }
-      
-     
-        .sidebar-user {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 1rem 1.5rem 1rem 1.5rem;
-            background: #1a2230;
+        #map {
+            height: 400px;
             border-radius: 1rem;
-            margin: 0 1rem 1rem 1rem;
+            box-shadow: var(--shadow-md);
+            margin-top: 1rem;
         }
-        .sidebar-user-avatar {
-            width: 36px; height: 36px; border-radius: 50%; background: #fff;
+
+        .chart-container {
+            height: 300px;
         }
-        .sidebar-user-name {
-            font-weight: 700; color: #fff; font-size: 1rem;
-        }
-        .sidebar-user-email {
-            color: #bfc9d4; font-size: 0.9rem;
-        }
-        .sidebar-section {
-            color: #bfc9d4;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 1.2rem 1.5rem 0.5rem 1.5rem;
-        }
-        .sidebar-nav {
-            display: flex;
-            flex-direction: column;
-            gap: 0.25rem;
-        }
-        .sidebar-link {
+
+        .association-card {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.7rem 1.5rem;
-            color: #bfc9d4;
-            font-weight: 500;
-            font-size: 1.05rem;
+            padding: 1rem;
             border-radius: 0.5rem;
-            text-decoration: none;
-            transition: background 0.2s, color 0.2s;
-            position: relative;
+            margin-bottom: 1rem;
+            background-color: #f8fafc;
         }
-        .sidebar-link.active, .sidebar-link:hover {
-            background: #2d3a4b;
-            color: #fff;
+
+        .association-card:hover {
+            background-color: #e2e8f0;
         }
-        .sidebar-link i { font-size: 1.3rem; }
-        .sidebar-close { display: none !important; }
+
+        .association-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #0ea5e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-right: 1rem;
+        }
+
+        .toda-screen-time {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-link i {
+            font-size: 1.2rem;
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar-link:hover i {
+            transform: translateX(3px);
+        }
+
+        .sidebar-close {
+            display: none !important;
+        }
+
         /* Submenu styles */
         .sidebar-submenu {
             position: relative;
         }
+
         .submenu-items {
             display: none;
             flex-direction: column;
             padding-left: 2.5rem;
-            margin-top: 0.25rem;
+            margin-top: 0.5rem;
         }
+
         .sidebar-submenu.active .submenu-items {
             display: flex;
         }
+
         .submenu-link {
             font-size: 0.95rem;
-            padding: 0.5rem 1rem;
-            color: #bfc9d4;
+            padding: 0.6rem 1rem;
+            color: rgba(255,255,255,0.7);
+            transition: all 0.2s ease;
         }
-        .submenu-link:hover, .submenu-link.active {
-            color: #fff;
-            background: #263143;
+
+        .submenu-link:hover,
+        .submenu-link.active {
+            color: white;
+            background: rgba(255,255,255,0.1);
         }
+
         .sidebar-submenu .sidebar-link i.bx-chevron-down {
-            transition: transform 0.3s;
+            transition: transform 0.3s ease;
         }
+
         .sidebar-submenu.active .sidebar-link i.bx-chevron-down {
             transform: rotate(180deg);
         }
+
         .badge {
             display: inline-block;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 0.2em 0.6em;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.3em 0.7em;
             border-radius: 1em;
             margin-left: 0.5em;
             vertical-align: middle;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transition: transform 0.2s ease;
         }
+
+        .badge:hover {
+            transform: scale(1.05);
+        }
+
         .badge.new {
-            background: #1de9b6;
-            color: #232e3c;
+            background: linear-gradient(135deg, #1de9b6, #10b981);
+            color: white;
         }
+
         .badge.hot {
-            background: #ff1744;
-            color: #fff;
+            background: linear-gradient(135deg, #ff1744, #dc2626);
+            color: white;
         }
+
+        /* Responsive Design */
         @media (max-width: 900px) {
-            .sidebar-overlay { display: none !important; }
-    .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #8fa195; z-index: 1050; transform: none !important; transition: none; border-top-right-radius: 2rem; }
-    .sidebar.open { transform: none; }
-    .sidebar-header { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem 1rem 1.5rem; }
-    .sidebar-logo { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; }
-    .sidebar-title { font-weight: 800; font-size: 1.2rem; color: #fff; }
-    .sidebar-subtitle { font-size: 0.85rem; color: #e0e7ef; font-weight: 600; }
-    .sidebar-nav { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.5rem; color: #222; font-weight: 500; font-size: 1.05rem; border-radius: 0.5rem; text-decoration: none; transition: background 0.2s; }
-    .sidebar-link:hover { background: #e5e7eb; color: #111; }
-    .sidebar-link i { font-size: 1.3rem; }
-    .sidebar-close { display: none !important; }
-    @media (max-width: 600px) { .sidebar { width: 90vw; } .container.py-4, .main-container, main.container, .content-container { margin-left: 0 !important; } }
-    /* Add these styles for the notification dropdown */
-    .notification-dropdown {
-        position: absolute;
-        right: 0;
-        top: 100%;
-        margin-top: 0.5rem;
-        z-index: 1000;
-        display: none;
-    }
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+            }
 
-    .notification-dropdown.show {
-        display: block;
-    }
+            .sidebar.open {
+                transform: translateX(0);
+            }
 
-    .notification-item {
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid #eee;
-    }
+            .sidebar-overlay {
+                display: block;
+            }
 
-    .notification-item:hover {
-        background-color: #f8f9fa;
-    }
+            .sidebar-header {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                padding: 1.5rem 1rem;
+            }
 
-    .notification-item:last-child {
-        border-bottom: none;
-    }
+            .sidebar-logo {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                background: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                color: var(--primary-color);
+            }
 
-    #notifBadge {
-        font-size: 0.7rem;
-        padding: 0.25em 0.6em;
-    }
+            .sidebar-title {
+                font-weight: 700;
+                font-size: 1.2rem;
+                color: white;
+            }
+
+            .sidebar-subtitle {
+                font-size: 0.9rem;
+                color: rgba(255,255,255,0.7);
+                font-weight: 500;
+            }
+
+            .sidebar-nav {
+                margin-top: 1.5rem;
+            }
+
+            .sidebar-link {
+                padding: 0.7rem 1.2rem;
+            }
+
+            @media (max-width: 600px) {
+                .sidebar {
+                    width: 90vw;
+                }
+            }
+        }
+
+        /* Notification Dropdown */
+        .notification-dropdown {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 0.5rem;
+            z-index: 1000;
+            display: none;
+            width: 350px;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item:hover {
+            background-color: var(--background-color);
+        }
+
+        .notification-item .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-color);
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .notification-item .notification-content {
+            flex: 1;
+        }
+
+        #notifBadge {
+            font-size: 0.75rem;
+            padding: 0.3em 0.7em;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 1em;
+        }
+
+        /* Topbar */
+        .navbar {
+            background: white;
+            box-shadow: var(--shadow-sm);
+            padding: 0.75rem 1.5rem;
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            height: 60px;
+            top: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--primary-color) !important;
+        }
+
+        .notification-container {
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 101;
+        }
+
+        /* Content Area */
+        .content-area {
+            margin-left: 260px;
+            padding-top: 60px;
+            min-height: 100vh;
+            background: var(--background-color);
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        /* Loading States */
+        .loading {
+            position: relative;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40px;
+            height: 40px;
+            margin: -20px 0 0 -20px;
+            border: 4px solid var(--border-color);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
 <?php include 'sidebar.php'; ?>
 <!-- Sticky Topbar -->
-<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top" style="z-index:1100;height:60px;">
+<nav class="navbar navbar-expand-lg navbar-light">
     <div class="container-fluid d-flex justify-content-between align-items-center">
-        <span class="fw-bold text-uppercase fs-5">MTFRB</span>
-    </div>
-</nav>
-<div class="container-fluid" style="margin-left:250px;min-height:100vh;background:#f5f7fa;padding-top:60px;">
-    <!-- Add this right after the navbar -->
-    <div class="notification-container position-relative">
-        <button class="btn btn-link position-relative" id="notifBellBtn">
-            <i class='bx bx-bell fs-4'></i>
-            <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="notifBadge" style="display: none;">0</span>
-        </button>
-        <div class="dropdown-menu notification-dropdown" id="notifDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
-            <div class="dropdown-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Notifications</h6>
-                <button class="btn btn-link btn-sm p-0" id="markAllNotifReadBtn">Mark all as read</button>
+        <span class="navbar-brand fw-bold text-uppercase">MTFRB</span>
+        <div class="notification-container">
+            <button class="btn btn-link position-relative" id="notifBellBtn">
+                <i class='bx bx-bell fs-4'></i>
+                <span class="badge bg-danger position-absolute top-0 start-100 translate-middle" id="notifBadge" style="display: none;">0</span>
+            </button>
+            <div class="dropdown-menu notification-dropdown" id="notifDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+                <div class="dropdown-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">Notifications</h6>
+                    <button class="btn btn-link btn-sm p-0" id="markAllNotifReadBtn">Mark all as read</button>
+                </div>
+                <div class="dropdown-divider"></div>
+                <div id="notifList"></div>
+                <div class="dropdown-divider"></div>
+                <a href="notifications.php" class="dropdown-item text-center">View all notifications</a>
             </div>
-            <div class="dropdown-divider"></div>
-            <div id="notifList"></div>
-            <div class="dropdown-divider"></div>
-            <a href="notifications.php" class="dropdown-item text-center">View all notifications</a>
         </div>
     </div>
-
-    <!-- Add this debug div temporarily -->
-    <div id="debugInfo" style="display: none;"></div>
-
+</nav>
+<div class="content-area">
+    <!-- Stat Cards -->
     <div class="row g-2 pt-2">
-        <!-- Stat Cards -->
         <div class="col-md-4">
             <div class="card border-0 mb-2" style="background:#fcfcfd;border-radius:0.7rem;box-shadow:0 1px 4px rgba(44,62,80,0.04);">
                 <div class="card-body d-flex align-items-center gap-2 py-2">
                     <div class="icon-circle bg-primary text-white" style="width:32px;height:32px;font-size:1rem;"><i class='bx bx-user'></i></div>
                     <div>
                         <div class="stat-label" style="font-size:0.8rem;">Total Passengers</div>
-                        <div class="stat-value" id="statUsers" style="font-size:1.1rem;">0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 mb-2" style="background:#fcfcfd;border-radius:0.7rem;box-shadow:0 1px 4px rgba(44,62,80,0.04);">
-                <div class="card-body d-flex align-items-center gap-2 py-2">
-                    <div class="icon-circle bg-success text-white" style="width:32px;height:32px;font-size:1rem;"><i class='bx bx-group'></i></div>
-                    <div>
-                        <div class="stat-label" style="font-size:0.8rem;">Total Associations</div>
-                        <div class="stat-value" id="statAssociations" style="font-size:1.1rem;">0</div>
+                        <div class="stat-value" id="statUsers" style="font-size:1.1rem;">
+                            <?php echo number_format($passengers_count); ?>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -243,13 +397,63 @@ require_once '../db_connect.php';
                     <div class="icon-circle bg-warning text-white" style="width:32px;height:32px;font-size:1rem;"><i class='bx bx-id-card'></i></div>
                     <div>
                         <div class="stat-label" style="font-size:0.8rem;">Total Drivers</div>
-                        <div class="stat-value" id="statDrivers" style="font-size:1.1rem;">0</div>
+                        <div class="stat-value" id="statDrivers" style="font-size:1.1rem;">
+                            <?php echo number_format($drivers_count); ?>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="row g-2">
+
+    <!-- Live Map Section -->
+    <div class="row g-2 pt-2">
+        <div class="col-12">
+            <div class="card border-0 mb-2" style="background:#fcfcfd;border-radius:0.7rem;box-shadow:0 1px 4px rgba(44,62,80,0.04);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Live Driver Locations</h5>
+                        <button class="btn btn-outline-primary btn-sm" id="refreshMapBtn">
+                            <i class='bx bx-refresh'></i> Refresh
+                        </button>
+                    </div>
+                    <div id="mapLoading" class="loading" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;"></div>
+                    <div id="liveMap" style="height: 400px; width: 100%; position: relative; z-index: 1;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TODA Screen Time Section -->
+    <div class="row g-2 pt-2">
+        <div class="col-lg-12 mb-4">
+            <div class="card border-0 mb-2" style="background:#fcfcfd;border-radius:0.7rem;box-shadow:0 1px 4px rgba(44,62,80,0.04);">
+                <div class="card-body p-3">
+                    <h5 class="mb-3">TODA Screen Time</h5>
+                    <div class="d-flex align-items-center mb-3">
+                        <select id="todaSelect" class="form-select form-select-sm me-2" style="width: 200px;">
+                            <option value="">Select TODA</option>
+                            <?php
+                            // Get all associations with their TODA names
+                            $sql = "SELECT DISTINCT name as toda_name FROM associations WHERE name IS NOT NULL ORDER BY name";
+                            $result = $conn->query($sql);
+                            while ($row = $result->fetch_assoc()) {
+                                echo "<option value='" . htmlspecialchars($row['toda_name']) . "'>" . htmlspecialchars($row['toda_name']) . "</option>";
+                            }
+                            ?>
+                        </select>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-primary" onclick="changeTimeRange('today')">Today</button>
+                            <button type="button" class="btn btn-outline-primary" onclick="changeTimeRange('week')">Week</button>
+                            <button type="button" class="btn btn-outline-primary" onclick="changeTimeRange('month')">Month</button>
+                        </div>
+                    </div>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="todaScreenTimeChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- Live Map -->
         <div class="col-lg-7">
             <div class="card border-0 mb-2" style="background:#fcfcfd;border-radius:0.7rem;box-shadow:0 1px 4px rgba(44,62,80,0.04);">
@@ -480,25 +684,173 @@ timeRangeSelect.addEventListener('change', loadScreenTime);
 if (assocSelect.value) {
     startScreenTimeAutoRefresh();
 }
-// Leaflet map for live locations
-const map = L.map('map').setView([13.222, 120.667], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '© OpenStreetMap'
-}).addTo(map);
-let driverMarkers = [], passengerMarkers = [];
-function loadLiveLocations() {
-    fetch('get_live_locations.php')
-        .then(res => res.json())
+
+// Initialize TODA screen time loading
+document.addEventListener('DOMContentLoaded', () => {
+    const todaSelect = document.getElementById('todaSelect');
+    if (todaSelect) {
+        todaSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                loadTodaScreenTime(e.target.value, 'today');
+            } else if (todaScreenTimeChart) {
+                todaScreenTimeChart.destroy();
+            }
+        });
+    }
+});
+
+// Function to change time range
+function changeTimeRange(range) {
+    const todaSelect = document.getElementById('todaSelect');
+    const selectedToda = todaSelect.value;
+    if (!selectedToda) {
+        alert('Please select a TODA first');
+        return;
+    }
+    loadTodaScreenTime(selectedToda, range);
+}
+
+// Function to load TODA screen time
+function loadTodaScreenTime(todaName, range) {
+    fetch(`get_toda_screen_time.php?todaName=${encodeURIComponent(todaName)}&range=${range}`)
+        .then(res => {
+            if (!res.ok) throw new Error('Network response was not ok');
+            return res.json();
+        })
         .then(data => {
-            driverMarkers.forEach(m => map.removeLayer(m));
-            passengerMarkers.forEach(m => map.removeLayer(m));
-            driverMarkers = data.drivers.map(loc => L.marker([loc.lat, loc.lng], {icon: L.divIcon({className:'', html:`<i class='bx bxs-map-pin' style='color:red;font-size:2rem;'></i>`})}).addTo(map));
-            passengerMarkers = data.passengers.map(loc => L.marker([loc.lat, loc.lng], {icon: L.divIcon({className:'', html:`<i class='bx bxs-map-pin' style='color:blue;font-size:2rem;'></i>`})}).addTo(map));
+            if (todaScreenTimeChart) todaScreenTimeChart.destroy();
+            
+            const ctx = document.getElementById('todaScreenTimeChart').getContext('2d');
+            todaScreenTimeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Screen Time (hours)',
+                        data: data.values,
+                        backgroundColor: '#2563eb',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `Screen Time for ${todaName}`
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + 'h';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(err => {
+            console.error('Error loading TODA screen time:', err);
+            alert('Error loading screen time data. Please try again.');
         });
 }
-loadLiveLocations();
-setInterval(loadLiveLocations, 10000); // refresh every 10s
+
+// Leaflet map for live locations
+let liveMap = null;
+let driverMarkers = new Map();
+
+function initializeLiveMap() {
+    // Initialize the map
+    liveMap = L.map('liveMap').setView([14.5995, 120.9842], 13); // Default to Metro Manila
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: ' OpenStreetMap contributors'
+    }).addTo(liveMap);
+
+    // Add a marker for the map center
+    L.marker([14.5995, 120.9842]).addTo(liveMap)
+        .bindPopup('Metro Manila Area')
+        .openPopup();
+
+    // Initialize the refresh button
+    document.getElementById('refreshMapBtn').addEventListener('click', () => {
+        updateDriverLocations(true);
+    });
+}
+
+function updateDriverLocations(forceUpdate = false) {
+    // Show loading indicator
+    document.getElementById('mapLoading').style.display = 'block';
+    
+    fetch('get_live_driver_locations.php')
+        .then(res => {
+            if (!res.ok) throw new Error('Network response was not ok');
+            return res.json();
+        })
+        .then(data => {
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to fetch driver locations');
+            }
+
+            // Clear existing markers
+            driverMarkers.forEach(marker => {
+                liveMap.removeLayer(marker);
+            });
+            driverMarkers.clear();
+
+            // Add new markers
+            data.drivers.forEach(driver => {
+                const { driver_id, latitude, longitude, fullname, last_updated } = driver;
+                const position = [latitude, longitude];
+
+                const marker = L.marker(position)
+                    .bindPopup(`
+                        <div class="p-2">
+                            <h6 class="mb-1">${fullname}</h6>
+                            <p class="mb-0 small text-muted">Last updated: ${new Date(last_updated).toLocaleString()}</p>
+                        </div>
+                    `);
+
+                marker.addTo(liveMap);
+                driverMarkers.set(driver_id, marker);
+            });
+
+            // Fit map to show all markers
+            if (driverMarkers.size > 0) {
+                const bounds = L.latLngBounds(
+                    driverMarkers.values().map(marker => marker.getLatLng())
+                );
+                liveMap.fitBounds(bounds, { padding: [50, 50] });
+            }
+
+            // Hide loading indicator
+            document.getElementById('mapLoading').style.display = 'none';
+
+            // Schedule next update if not forced
+            if (!forceUpdate) {
+                setTimeout(updateDriverLocations, 5000); // Update every 5 seconds
+            }
+        })
+        .catch(err => {
+            console.error('Error updating driver locations:', err);
+            // Show error message on map
+            const errorMarker = L.marker([14.5995, 120.9842])
+                .bindPopup(`Error: ${err.message}`);
+            errorMarker.addTo(liveMap);
+            document.getElementById('mapLoading').style.display = 'none';
+        });
+}
+
 // Notifications logic
 const notifBellBtn = document.getElementById('notifBellBtn');
 const notifDropdown = document.getElementById('notifDropdown');
@@ -575,7 +927,6 @@ function fetchAdminNotifications() {
                     const date = new Date(notif.created_at);
                     const formattedDate = date.toLocaleString();
                     
-                    // Create notification content
                     item.innerHTML = `
                         <div class="d-flex align-items-start">
                             <div class="me-3">
@@ -592,20 +943,32 @@ function fetchAdminNotifications() {
                         </div>
                     `;
 
-                    // Add click handler
-                    item.onclick = function() {
-                        if (notif.booking_id) {
-                            window.location.href = `booking_details.php?id=${notif.booking_id}`;
-                        }
-                    };
+                        // Add click handler
+                        item.onclick = function() {
+                            if (notif.booking_id) {
+                                window.location.href = `booking_details.php?id=${notif.booking_id}`;
+                            }
+                        };
 
-                    notifList.appendChild(item);
-                    notifList.appendChild(document.createElement('hr'));
-                });
+                        notifList.appendChild(item);
+                        notifList.appendChild(document.createElement('hr'));
+                    });
+                }
+            } catch (parseError) {
+                console.error('Failed to parse JSON:', parseError);
+                console.error('Raw response:', responseText);
+                throw parseError;
             }
         })
         .catch(err => {
             console.error('Error loading notifications:', err);
+            // Show error message to user
+            const notifList = document.getElementById('notifList');
+            notifList.innerHTML = `
+                <div class="alert alert-danger">
+                    Failed to load notifications. Please try again later.
+                </div>
+            `;
         });
 }
 
@@ -657,6 +1020,9 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Page loaded, initializing notifications...');
     fetchAdminNotifications();
     setInterval(fetchAdminNotifications, 30000);
+    
+    // Initialize live map
+    setTimeout(initializeLiveMap, 1000); // Delay initialization to ensure DOM is ready
 });
 
 // Submenu toggle functionality
@@ -667,6 +1033,5 @@ document.querySelectorAll('.sidebar-submenu .sidebar-link').forEach(link => {
         submenu.classList.toggle('active');
     });
 });
-</script>
 </body>
 </html>

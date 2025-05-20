@@ -31,52 +31,130 @@ while ($row = $result->fetch_assoc()) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+    <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Reports</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
-  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-  <style>
-    body { font-family: 'Inter', sans-serif; background: url('https://placehold.co/1920x1080?text=Background+Image') center/cover no-repeat; min-height: 100vh; margin: 0; padding: 0; }
-    .navbar-custom { background-color: #fff; border-bottom: 1px solid #dee2e6; border-radius: 0; }
-    .content-container { background: rgba(255 255 255 / 0.9); border-radius: 1rem 1rem 0 0; padding: 2rem 1.5rem 3rem; min-width: 900px; overflow-x: auto; margin-left: 260px; }
-    table thead th { background-color: #d1d5db; font-weight: 600; vertical-align: middle; user-select: none; }
-    table tbody tr.bg-light-row { background-color: #e5e7eb; height: 2rem; }
-    .pagination .page-item.disabled .page-link { color: #d1d5db; pointer-events: none; cursor: default; }
-    .pagination .page-item.active .page-link { background-color: #2563eb; border-color: #2563eb; color: white; font-weight: 600; }
-    .pagination .page-link { font-size: 0.75rem; padding: 0.25rem 0.5rem; color: #6b7280; }
-    .pagination .page-link:hover { color: #2563eb; text-decoration: underline; }
-    .btn-filter { font-weight: 600; font-size: 0.875rem; border-radius: 0.5rem; padding: 0.25rem 0.75rem; background-color: #e5e7eb; border: 1px solid #d1d5db; color: #111827; }
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; min-height: 100vh; margin: 0; }
+        .header { height: 56px; border-bottom: 1px solid #dee2e6; background-color: #fff; opacity: 0.95; }
+        .content-container { background-color: rgba(255 255 255 / 0.95); border-radius: 0.75rem; padding: 1rem 1.5rem; max-width: 100%; box-shadow: 0 0 10px rgb(0 0 0 / 0.1); margin: 1rem auto 2rem; }
+        table { font-size: 0.875rem; width: 100%; border-collapse: collapse; }
+        th { font-size: 0.75rem; font-weight: 600; color: #374151; background-color: #f8fafc; padding: 0.5rem; }
+        td { font-size: 0.75rem; color: #4b5563; padding: 0.5rem; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .pagination { font-size: 0.75rem; margin-top: 1rem; }
+        .pagination .page-link { color: #2563eb; }
+        .pagination .page-item.active .page-link { background-color: #2563eb; color: white; }
+    .btn-filter { font-size: 0.75rem; padding: 0.25rem 0.75rem; background-color: #2563eb; color: white; border: none; border-radius: 0.375rem; cursor: pointer; transition: background-color 0.2s; }
+    .btn-filter:hover { background-color: #1d4ed8; }
+    .fas { font-size: 0.75rem; margin-right: 0.25rem; }
+    .search-label { font-size: 0.75rem; color: #374151; margin-right: 0.5rem; }
+    .complainee-link { color: #2563eb; text-decoration: underline; cursor: pointer; }
+    .complainee-link:hover { color: #1d4ed8; }
     .btn-filter:focus, .btn-filter:hover { background-color: #d1d5db; color: #111827; box-shadow: none; }
     .search-input { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.25rem 0.5rem; font-size: 0.875rem; color: #111827; width: 16rem; }
     .search-input:focus { outline: none; border-color: #2563eb; box-shadow: 0 0 0 0.2rem rgb(59 130 246 / 0.5); }
     .search-btn { background: none; border: none; color: #6b7280; font-size: 1rem; cursor: pointer; padding: 0 0.5rem; }
     .search-btn:hover { color: #111827; }
-    /* Sidebar styles from dashboard */
-    .sidebar-overlay { display: none !important; }
-    .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #8fa195; z-index: 1050; transform: none !important; transition: none; border-top-right-radius: 2rem; }
-    .sidebar.open { transform: none; }
-    .sidebar-header { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem 1rem 1.5rem; }
-    .sidebar-logo { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; }
-    .sidebar-title { font-weight: 800; font-size: 1.2rem; color: #fff; }
-    .sidebar-subtitle { font-size: 0.85rem; color: #e0e7ef; font-weight: 600; }
-    .sidebar-nav { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-    .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.5rem; color: #222; font-weight: 500; font-size: 1.05rem; border-radius: 0.5rem; text-decoration: none; transition: background 0.2s; }
-    .sidebar-link:hover { background: #e5e7eb; color: #111; }
-    .sidebar-link i { font-size: 1.3rem; }
-    .sidebar-close { display: none !important; }
-    @media (max-width: 600px) { .sidebar { width: 90vw; } .content-container { margin-left: 0; } }
+    /* Sidebar styles */
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 1040;
+        display: none;
+        transition: opacity 0.3s;
+    }
+
+    .sidebar {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        height: calc(100vh - 60px);
+        width: 260px;
+        background: linear-gradient(135deg, #1e293b, #334155);
+        z-index: 99;
+        border-top-right-radius: 2rem;
+        box-shadow: 2px 0 12px rgba(0,0,0,0.1);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        direction: rtl;
+    }
+
+    .sidebar-section {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 1.5rem 1.5rem 0.5rem 1.5rem;
+        padding-left: 0.5rem;
+        border-left: 3px solid var(--primary-color);
+    }
+
+    .sidebar-nav {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.8rem 1.5rem;
+        color: rgba(255,255,255,0.8);
+        font-weight: 500;
+        font-size: 1rem;
+        border-radius: 0.75rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        position: relative;
+        direction: ltr;
+    }
+
+    .sidebar-link::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 3px;
+        height: 0;
+        background: var(--primary-color);
+        border-radius: 1.5px;
+        transition: height 0.2s ease;
+    }
+
+    .sidebar-link.active,
+    .sidebar-link:hover {
+        color: white;
+        background: rgba(255,255,255,0.1);
+    }
+
+    .sidebar-link.active::before,
+    .sidebar-link:hover::before {
+        height: 100%;
+        top: 0;
+    }
+
     .complainee-link { color: #2563eb; cursor: pointer; text-decoration: underline; }
     .complainee-link:hover { color: #1d4ed8; }
   </style>
 </head>
 <body>
+  <?php include 'header.php'; ?>
   <?php include 'sidebar.php'; ?>
-  <div class="content-container" style="margin-left:260px;">
-    <div class="content-container mx-auto mt-3">
-      <form class="d-flex flex-wrap align-items-center gap-3 mb-4" role="search" aria-label="Search and filter form">
+  <div class="container-fluid" style="margin-left:260px;">
+    <main class="flex-grow-1">
+      <div class="container-fluid bg-white-opacity rounded-3 shadow-sm mt-4">
+        <div class="p-4">
+          <h1 class="h5 fw-semibold mb-4">Reports</h1>
+          <form class="d-flex flex-wrap align-items-center gap-3 mb-4" role="search" aria-label="Search and filter form">
         <label for="search-filter" class="fw-semibold mb-0" style="user-select:none;">Search</label>
         <select id="search-filter" class="btn-filter" aria-label="Search filter">
           <option>All</option>

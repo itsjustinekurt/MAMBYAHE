@@ -1,10 +1,31 @@
 <?php
+// Define base URL if not already defined
+if (!defined('BASE_URL')) {
+    define('BASE_URL', 'http://localhost:3000/MAMBYAHE/view');
+}
+
 // Get driver information if not already available
 if (!isset($driver)) {
     try {
         // First, let's get the basic driver info
         $stmt = $pdo->prepare("
-            SELECT * FROM driver WHERE driver_id = :driver_id
+            SELECT *,
+                   CASE 
+                       WHEN profile_pic LIKE 'driver_%' THEN SUBSTRING_INDEX(profile_pic, '_', -1)
+                       ELSE profile_pic
+                   END as pic_name,
+                   CASE 
+                       WHEN profile_pic LIKE '%.jpg' THEN '.jpg'
+                       WHEN profile_pic LIKE '%.png' THEN '.png'
+                       WHEN profile_pic LIKE '%.jpeg' THEN '.jpeg'
+                       ELSE ''
+                   END as pic_ext,
+                   CASE 
+                       WHEN profile_pic LIKE 'driver_%' THEN ''
+                       ELSE 'driver_'
+                   END as pic_prefix
+            FROM driver 
+            WHERE driver_id = :driver_id
         ");
         $stmt->execute(['driver_id' => $_SESSION['driver_id']]);
         $driver = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -16,7 +37,7 @@ if (!isset($driver)) {
                 COALESCE(AVG(r.rating), 0) as average_rating,
                 COUNT(DISTINCT r.id) as total_reviews
             FROM driver d
-            LEFT JOIN bookings b ON d.driver_id = b.driver_id AND b.status = 'completed'
+            LEFT JOIN bookings b ON d.driver_id = b.driver_id
             LEFT JOIN driver_reviews r ON d.driver_id = r.driver_id
             WHERE d.driver_id = :driver_id
             GROUP BY d.driver_id
@@ -53,7 +74,19 @@ $has_active_arrival = isset($_SESSION['arrival_state']) &&
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="text-center">
-            <img src="<?php echo !empty($driver['profile_pic']) ? './uploads/driver_ids/' . $driver['profile_pic'] : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; ?>" 
+            <img src="<?php 
+                $driverPic = '';
+                if (!empty($driver['driver_id']) && !empty($driver['profile_pic'])) {
+                    $driverPic = 'driver_' . $driver['driver_id'] . '_' . $driver['profile_pic'];
+                }
+                $driverPic = '';
+                if (!empty($driver['driver_id']) && !empty($driver['pic_name'])) {
+                    // Remove any existing extension before adding new one
+                    $baseName = pathinfo($driver['pic_name'], PATHINFO_FILENAME);
+                    $driverPic = $driver['pic_prefix'] . $driver['driver_id'] . '_' . $baseName . $driver['pic_ext'];
+                }
+                echo !empty($driverPic) ? 'http://localhost:3000/MAMBYAHE/view/uploads/driver_ids/' . $driverPic : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg';
+            ?>" 
                  alt="Driver" 
                  class="sidebar-profile-pic mb-2"
                  onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'">
@@ -84,6 +117,12 @@ $has_active_arrival = isset($_SESSION['arrival_state']) &&
             <a href="driver_history.php" class="sidebar-link <?php echo $current_page === 'driver_history.php' ? 'active' : ''; ?>">
                 <i class="fas fa-history"></i>
                 <span>Ride History</span>
+            </a>
+        </li>
+        <li>
+            <a href="driver_settings.php" class="sidebar-link <?php echo $current_page === 'driver_settings.php' ? 'active' : ''; ?>">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
             </a>
         </li>
         <li>
@@ -157,23 +196,22 @@ document.addEventListener('DOMContentLoaded', initializeArrivalState);
     .sidebar {
         position: fixed;
         top: 0;
-        left: -280px;
+        left: 0;
         width: 280px;
         height: 100vh;
-        background: white;
+        background: #f8f9fa;
         z-index: 1001;
         transition: all 0.3s ease;
         box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-    }
-
-    .sidebar.active {
-        left: 0;
+        padding: 1rem;
+        overflow-y: auto;
     }
 
     .sidebar-header {
-        padding: 2rem 1rem;
+        padding: 1.5rem 0;
         text-align: center;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #e9ecef;
+        margin-bottom: 1.5rem;
     }
 
     .sidebar-profile-pic {
@@ -182,6 +220,7 @@ document.addEventListener('DOMContentLoaded', initializeArrivalState);
         border-radius: 50%;
         object-fit: cover;
         border: 3px solid #198754;
+        margin: 0 auto;
     }
 
     .sidebar-menu {
@@ -197,10 +236,12 @@ document.addEventListener('DOMContentLoaded', initializeArrivalState);
         color: #333;
         text-decoration: none;
         transition: all 0.3s ease;
+        border-radius: 0.5rem;
+        margin: 0.25rem 0;
     }
 
     .sidebar-link:hover {
-        background: #f8f9fa;
+        background: #e9ecef;
         color: #198754;
     }
 

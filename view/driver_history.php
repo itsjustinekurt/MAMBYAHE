@@ -3,6 +3,10 @@ session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// Define base URL
+define('BASE_URL', 'http://localhost/MAMBYAHE/view');
+define('UPLOADS_URL', BASE_URL . '/uploads');
+
 // Check if driver is logged in
 if (!isset($_SESSION['driver_id'])) {
     header("Location: login.php");
@@ -20,7 +24,7 @@ try {
     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name", $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Get ride history
+    // Get ride history and driver info
     $stmt = $pdo->prepare("
         SELECT b.*, 
                p.fullname as passenger_name,
@@ -29,9 +33,28 @@ try {
                r.review,
                b.pickup as pickup_location,
                b.destination as dropoff_location,
-               b.fare as amount
+               b.fare as amount,
+               d.driver_id,
+               CASE 
+                   WHEN d.profile_pic LIKE 'driver_%' THEN SUBSTRING_INDEX(d.profile_pic, '_', -1)
+                   ELSE d.profile_pic
+               END as driver_pic,
+               CASE 
+                   WHEN d.profile_pic LIKE '%.jpg' THEN '.jpg'
+                   WHEN d.profile_pic LIKE '%.png' THEN '.png'
+                   WHEN d.profile_pic LIKE '%.jpeg' THEN '.jpeg'
+                   ELSE ''
+               END as driver_ext,
+               CASE 
+                   WHEN b.status = 'completed' THEN 'Completed'
+                   WHEN b.status = 'cancelled' THEN 'Cancelled'
+                   WHEN b.status = 'rejected' THEN 'Rejected'
+                   WHEN b.status = 'confirmed' THEN 'Confirmed'
+                   ELSE 'In Progress'
+               END as status_display
         FROM bookings b
         LEFT JOIN passenger p ON b.passenger_id = p.passenger_id
+        LEFT JOIN driver d ON b.driver_id = d.driver_id
         LEFT JOIN driver_reviews r ON b.id = r.booking_id
         WHERE b.driver_id = :driver_id
         ORDER BY b.created_at DESC
@@ -69,6 +92,24 @@ try {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
+        /* Layout */
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 1000;
+        }
+
+        .content {
+            margin-left: 280px;
+            padding: 20px;
+        }
+
+        /* Ride Card */
         .ride-card {
             background: white;
             border-radius: 10px;
@@ -77,7 +118,7 @@ try {
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         
-        .passenger-pic {
+        .passenger-pic, .driver-pic {
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -98,7 +139,8 @@ try {
 <body class="bg-light">
     <?php include 'components/driver_sidebar.php'; ?>
 
-    <div class="container mt-5">
+    <div class="content">
+        <div class="container mt-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Ride History</h2>
             <div class="total-rides-badge bg-primary text-white px-3 py-2 rounded">
@@ -117,7 +159,27 @@ try {
                 <div class="ride-card">
                     <div class="d-flex justify-content-between align-items-start mb-3">
                         <div class="d-flex align-items-center">
-                            <img src="<?php echo !empty($ride['passenger_pic']) ? '../uploads/passenger/' . $ride['passenger_pic'] : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; ?>" 
+                            <img src="<?php 
+                                if (!empty($ride['driver_id']) && !empty($ride['driver_pic'])) {
+                                    // Remove any existing extension before adding new one
+                                    $baseName = pathinfo($ride['driver_pic'], PATHINFO_FILENAME);
+                                    $driverPic = $ride['driver_prefix'] . $ride['driver_id'] . '_' . $baseName . $ride['driver_ext'];
+                                }
+                                echo !empty($driverPic) ? 'http://localhost:3000/MAMBYAHE/view/uploads/driver_ids/' . $driverPic : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; 
+                            ?>" 
+                                 alt="Driver" 
+                                 class="driver-pic me-3"
+                                 onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'">
+                            <img src="<?php 
+                                $passengerPic = !empty($ride['passenger_pic']) ? $ride['passenger_pic'] . $ride['passenger_ext'] : '';
+                                $passengerPic = '';
+                                if (!empty($ride['passenger_pic'])) {
+                                    // Remove any existing extension before adding new one
+                                    $baseName = pathinfo($ride['passenger_pic'], PATHINFO_FILENAME);
+                                    $passengerPic = $baseName . $ride['passenger_ext'];
+                                }
+                                echo !empty($passengerPic) ? 'http://localhost:3000/MAMBYAHE/view/uploads/passenger/' . $passengerPic : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'; 
+                            ?>" 
                                  alt="Passenger" 
                                  class="passenger-pic me-3"
                                  onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'">
@@ -174,8 +236,9 @@ try {
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
+    </div>
 
     <!-- Bootstrap Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl7/1vVx9M/1bOc74n0xXQEqAxULb7q+lsZB3YLdwhN4s" crossorigin="anonymous"></script>
 </body>
 </html> 

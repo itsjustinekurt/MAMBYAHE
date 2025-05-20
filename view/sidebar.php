@@ -35,12 +35,11 @@ $passenger_name = htmlspecialchars($user['username'] ?? '');
 ?>
 
 <!-- Sidebar Menu -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="sidebarLabel">Menu</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+<div class="sidebar">
+  <div class="sidebar-header">
+    <h5 class="sidebar-title">MTFRB</h5>
   </div>
-  <div class="offcanvas-body">
+  <div class="sidebar-content">
     <div class="user-card text-center">
       <!-- Display profile picture or default icon -->
       <img src="<?= htmlspecialchars($profilePic) ?>" alt="Profile Picture" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; margin-bottom: 10px;">

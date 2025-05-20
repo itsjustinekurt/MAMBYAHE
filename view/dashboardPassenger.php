@@ -94,15 +94,158 @@ try {
 }
 
 // Handle logout
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_logout'])) {
-    session_unset();
-    session_destroy();
-    header("Location: logout.php");
-    exit();
-}
-
-if (isset($_SESSION['tab_token'])):
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['confirm_logout']))
+    session_start();
+    $page_title = 'Dashboard';
+    include('sidebar.php');
 ?>
+
+<!-- Map Container -->
+<div id="map"></div>
+
+<!-- Menu Button -->
+<button class="menu-toggle" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+  <i class="fas fa-bars"></i>
+</button>
+
+<!-- Sidebar Menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="sidebar">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title">Menu</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+
+  <div class="offcanvas-body">
+    <div class="user-card text-center">
+      <img src="<?= htmlspecialchars($profilePic) ?>" alt="Profile Picture" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover; margin-bottom: 10px;">
+      <br>
+      <strong><?php echo $passenger_name; ?></strong><br>
+      <span class="text-success"><i class="fas fa-circle"></i> Online</span><br>
+      <a href="passenger_profile.php" class="btn btn-sm btn-outline-primary mt-2">View Profile</a>
+    </div>
+    <ul class="list-unstyled">
+      <li><a href="dashboardPassenger.php" class="d-block py-2"><i class="fas fa-home me-2"></i> Home</a></li>
+      <li><a href="ride_details.php" class="d-block py-2"><i class="fas fa-car me-2"></i> Ride Details</a></li>
+      <li><a href="support.php" class="d-block py-2"><i class="fas fa-headset me-2"></i> Contact Support</a></li>
+      <li>
+        <a href="#" class="d-block py-2 text-danger" data-bs-toggle="modal" data-bs-target="#logoutModal">
+          <i class="fas fa-sign-out-alt me-2"></i> Logout
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center p-4">
+      <div class="modal-body">
+        <div class="mb-3">
+          <i class="fas fa-sign-out-alt fa-3x text-danger"></i>
+        </div>
+        <h4 class="mb-1">Come back soon!</h4>
+        <p class="text-muted">Are you sure you want to logout?</p>
+        <div class="d-grid gap-2">
+          <form method="POST">
+            <button type="submit" name="confirm_logout" class="btn btn-dark">Yes, Logout</button>
+          </form>
+          <button type="button" class="btn btn-link text-danger" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Icon -->
+<div class="notification-icon dropdown">
+  <a class="dropdown-toggle text-dark" href="#" role="button" id="notifDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+    <i class="fas fa-bell fs-4"></i>
+    <?php if ($unread_count > 0): ?>
+      <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+        <?= $unread_count ?>
+      </span>
+    <?php endif; ?>
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end p-2" aria-labelledby="notifDropdown" style="width: 350px; max-height: 400px; overflow-y: auto;">
+    <li class="d-flex justify-content-between align-items-center px-2 mb-2">
+      <span class="fw-bold">Notifications</span>
+      <div>
+        <button class="btn btn-sm btn-outline-success me-1" id="markAllReadBtn">Mark all as read</button>
+      </div>
+    </li>
+    <hr class="my-1">
+    <?php if (!empty($notifications)): ?>
+          <?php foreach ($notifications as $notification): ?>
+            <div class="dropdown-item notification-item <?= $notification['status'] === 'unread' ? 'bg-light' : '' ?>"
+                 data-notification-id="<?= $notification['notification_id'] ?>"
+                 data-booking-id="<?= $notification['booking_id'] ?>"
+                 data-driver-id="<?= $notification['driver_id'] ?>"
+                 data-type="<?= htmlspecialchars($notification['type']) ?>"
+                 data-message="<?= htmlspecialchars($notification['message']) ?>"
+                 data-created-at="<?= $notification['created_at'] ?>"
+                 style="cursor: pointer;">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <?php if (!empty($notification['profile_pic'])): ?>
+                            <img src="uploads/<?php echo htmlspecialchars($notification['profile_pic']); ?>" 
+                                 class="rounded-circle" 
+                                 alt="Profile" 
+                                 style="width: 40px; height: 40px; object-fit: cover;">
+                        <?php else: ?>
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                 style="width: 40px; height: 40px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><?php echo htmlspecialchars($notification['type']); ?></h6>
+                            <small class="text-muted"><?php echo date('M d, H:i', strtotime($notification['created_at'])); ?></small>
+                        </div>
+                        <p class="mb-0 text-muted"><?php echo nl2br(htmlspecialchars($notification['message'])); ?></p>
+                    </div>
+                </div>
+            </div>
+            <div class="dropdown-divider"></div>
+          <?php endforeach; ?>
+    <?php else: ?>
+          <div class="dropdown-item text-center py-3">
+            <i class="fas fa-bell-slash text-muted mb-2"></i>
+            <p class="mb-0">No notifications</p>
+          </div>
+    <?php endif; ?>
+    <li><a href="view_all_notifications.php" class="dropdown-item text-center">See all notifications</a></li>
+  </ul>
+</div>
+
+<!-- Rejection Notification Modal -->
+<div class="modal fade" id="rejectionModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Ride Rejected</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="text-center">
+          <i class="fas fa-times-circle fa-3x text-danger mb-3"></i>
+          <h5 class="mb-3">Your ride has been rejected</h5>
+          <p class="text-muted mb-4">The driver has rejected your ride request.</p>
+          <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Book Now Button -->
+<button class="btn btn-success book-now-btn" data-bs-toggle="modal" data-bs-target="#bookModal">
+  <i class="fas fa-plus"></i> Book Now
+</button>
+
+<?php if (isset($_SESSION['tab_token'])): ?>
 <script>
 var serverTabToken = '<?php echo $_SESSION['tab_token']; ?>';
 if (sessionStorage.getItem('tab_token') !== serverTabToken) {
@@ -141,21 +284,87 @@ window.addEventListener('unload', function() {
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 
   <style>
-    body, html {
+    body {
       margin: 0;
       padding: 0;
-      height: 100%;
-        width: 100%;
-        overflow: hidden;
+      height: 100vh;
+      width: 100%;
+      overflow: hidden;
+      background-color: #f9f9f9;
+    }
+
+    /* Sidebar Styles */
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 250px;
+      background: #fff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      z-index: 1001;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #dee2e6;
+    }
+
+    .sidebar-header {
+      padding: 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .sidebar-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .sidebar .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 10px 15px;
+      color: #333;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+      width: 100%;
+      margin-bottom: 5px;
+    }
+
+    .sidebar .nav-link:hover {
+      background-color: #f8f9fa;
+    }
+
+    .sidebar .nav-link.active {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .sidebar .nav-link i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .sidebar .nav-link span {
+      flex: 1;
     }
 
     #map {
         height: calc(100vh - 60px); /* Adjust map height to account for header */
-      width: 100%;
+        width: calc(100% - 250px); /* Adjust width to account for sidebar */
         position: absolute;
         top: 60px; /* Position map below header */
-        left: 0;
+        left: 250px; /* Position map to the right of sidebar */
         z-index: 1;
+        overflow: hidden;
     }
 
     .header {
@@ -338,14 +547,14 @@ window.addEventListener('unload', function() {
         font-weight: 600;
     }
   </style>
-</head>
-<body>
-    <?php include 'components/header.php'; ?>
-    <?php include 'components/passenger_sidebar.php'; ?>
 
-<!-- Map Container -->
-<div id="map"></div>
-
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <button class="menu-toggle" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+                <i class="fas fa-bars fs-4"></i>
+            </button>
+            <h5 class="mb-0"><?php echo htmlspecialchars($page_title); ?></h5>
 <!-- Menu Button -->
 <button class="menu-toggle" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
   <i class="fas fa-bars"></i>

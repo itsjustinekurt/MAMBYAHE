@@ -1,197 +1,162 @@
 <?php
+session_start();
+error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
-session_start();
 
 // Set page title
 $page_title = "Driver Dashboard";
 
-// Add this at the top of the file, after session_start()
+// Define base URL
 $baseUrl = 'http://localhost/MAMBYAHE';
 
-// Database credentials
-$db_host = 'localhost';
-$db_name = 'user_auth';
-$db_user = 'root';
-$db_pass = '';
+// Include database configuration
+require_once __DIR__ . '/../config/database.php';
 
-// After session_start()
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Security headers
+header('X-Frame-Options: DENY');
+header('X-Content-Type-Options: nosniff');
+header('X-XSS-Protection: 1; mode=block');
+
+// Initialize error logging
+error_log("Driver Dashboard initialized for session: " . session_id());
+error_log("Driver ID: " . (isset($_SESSION['driver_id']) ? $_SESSION['driver_id'] : 'Not set'));
+
+// Check if driver is logged in
+if (!isset($_SESSION['driver_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+// Validate session
+if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+    header("Location: login.php");
+    exit();
+}
+
+// Validate driver ID
+$driver_id = filter_var($_SESSION['driver_id'], FILTER_VALIDATE_INT);
+if (!$driver_id) {
+    header("Location: login.php");
+    exit();
+}
+
+// Cache key for driver data
+$cache_key = 'driver_' . $driver_id . '_dashboard_data';
+$cache_timeout = 300; // 5 minutes
+
+// Check cache
+if (isset($_SESSION[$cache_key]) && 
+    (time() - $_SESSION[$cache_key]['timestamp'] < $cache_timeout)) {
+    $driver = $_SESSION[$cache_key]['data'];
+    $notifications = $_SESSION[$cache_key]['notifications'];
+    $ride_stats = $_SESSION[$cache_key]['ride_stats'];
+    $unread_count = $_SESSION[$cache_key]['unread_count'];
+    $total_trips = $_SESSION[$cache_key]['total_trips'];
+    $pending_rides = $_SESSION[$cache_key]['pending_rides'];
+    $ride_dates = $_SESSION[$cache_key]['ride_dates'];
+    $ride_counts = $_SESSION[$cache_key]['ride_counts'];
+    $profilePic = $_SESSION[$cache_key]['profilePic'];
+    goto display_dashboard;
+}
 
 try {
     // Establish PDO connection
     $pdo = new PDO("mysql:host=$db_host;dbname=$db_name", $db_user, $db_pass);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Check if driver is logged in
-    if (!isset($_SESSION['driver_id'])) {
-        header("Location: login.php");
-        exit();
-    }
-
-$driver_id = $_SESSION['driver_id'];
-    $driver_name = htmlspecialchars($_SESSION['username']);
-
-    // Get driver's current location
-    $stmt = $pdo->prepare("SELECT latitude, longitude FROM driver_locations WHERE driver_id = :driver_id ORDER BY updated_at DESC LIMIT 1");
-    $stmt->execute(['driver_id' => $driver_id]);
-    $location = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Get driver's profile picture
-    $stmt = $pdo->prepare("SELECT profile_pic FROM driver WHERE driver_id = :driver_id");
-    $stmt->execute(['driver_id' => $driver_id]);
-    $driver = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    // Debug the profile picture path
-    error_log("Driver profile picture: " . print_r($driver['profile_pic'], true));
-
-    // Use relative path
-    $profilePic = !empty($driver['profile_pic']) 
-        ? 'uploads/driver_ids/' . $driver['profile_pic'] 
-        : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg';
-
-    // Add error handling for image loading with more detailed logging
-    echo '<script>
-        window.addEventListener("load", function() {
-            const profileImages = document.querySelectorAll("img[src*=\'driver_ids\']");
-            profileImages.forEach(img => {
-                console.log("Attempting to load image:", img.src); // Debug log
-                img.onerror = function() {
-                    console.log("Image failed to load:", this.src); // Debug log
-                    console.log("Current page URL:", window.location.href); // Debug log
-                    this.src = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg";
-                };
-            });
-        });
-    </script>';
-
-    // Debug: Check notifications table structure
     try {
-        $debug_stmt = $pdo->query("DESCRIBE notifications");
-        $columns = $debug_stmt->fetchAll(PDO::FETCH_ASSOC);
-        error_log("Notifications table structure: " . print_r($columns, true));
-    } catch (PDOException $e) {
-        error_log("Error checking notifications table structure: " . $e->getMessage());
-    }
-
-    // Debug: Check all notifications for this driver
-    try {
-        $debug_stmt = $pdo->prepare("
-            SELECT * FROM notifications 
-            WHERE driver_id = :driver_id 
-            ORDER BY created_at DESC
+        // Get driver's profile and location in one query
+        $stmt = $pdo->prepare("
+            SELECT d.profile_pic, dl.latitude, dl.longitude 
+            FROM driver d
+            LEFT JOIN (
+                SELECT latitude, longitude, driver_id 
+                FROM driver_locations 
+                WHERE driver_id = :driver_id 
+                ORDER BY updated_at DESC 
+                LIMIT 1
+            ) dl ON dl.driver_id = d.driver_id
+            WHERE d.driver_id = :driver_id
         ");
-        $debug_stmt->execute(['driver_id' => $driver_id]);
-        $all_notifications = $debug_stmt->fetchAll(PDO::FETCH_ASSOC);
-        error_log("All notifications for driver $driver_id: " . print_r($all_notifications, true));
-    } catch (PDOException $e) {
-        error_log("Error fetching all notifications: " . $e->getMessage());
-    }
-
-    // Get unread notifications count
-    $stmt = $pdo->prepare("
-        SELECT COUNT(*) AS unread_count 
-        FROM notifications 
-        WHERE driver_id = :driver_id 
-        AND user_type = 'driver'
-        AND status = 'unread'
-    ");
-    try {
         $stmt->execute(['driver_id' => $driver_id]);
-        $unread_count = $stmt->fetchColumn();
-        error_log("Unread notifications count: " . $unread_count);
-    } catch (PDOException $e) {
-        error_log("Error getting unread count: " . $e->getMessage());
-        $unread_count = 0;
-    }
-
-    // Check if notifications table exists
-    try {
-        $tableExists = $pdo->query("SHOW TABLES LIKE 'notifications'")->rowCount() > 0;
-        error_log("Notifications table exists: " . ($tableExists ? 'Yes' : 'No'));
+        $driver = $stmt->fetch(PDO::FETCH_ASSOC);
         
-        if ($tableExists) {
-            // Get table structure
-            $columns = $pdo->query("DESCRIBE notifications")->fetchAll(PDO::FETCH_COLUMN);
-            error_log("Notifications table columns: " . print_r($columns, true));
-        }
-    } catch (PDOException $e) {
-        error_log("Error checking notifications table: " . $e->getMessage());
-    }
+        // Handle profile picture
+        $profilePic = !empty($driver['profile_pic']) 
+            ? 'uploads/driver_ids/' . $driver['profile_pic'] 
+            : 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg';
 
-    // Debug: Check notifications table
-    try {
-        $debug_stmt = $pdo->prepare("
-            SELECT * FROM notifications 
-            WHERE driver_id = :driver_id 
-            ORDER BY created_at DESC
+        // Get notifications and stats in one query
+        $stmt = $pdo->prepare("
+            SELECT 
+                COUNT(CASE WHEN n.status = 'unread' THEN 1 END) as unread_count,
+                COUNT(CASE WHEN b.status = 'completed' THEN 1 END) as total_trips,
+                COUNT(CASE WHEN b.status = 'pending' THEN 1 END) as pending_rides,
+                n.*, p.fullname as passenger_name, p.profile_pic, p.phone as passenger_phone,
+                b.status as booking_status, b.pickup_location, b.destination, b.seats, b.fare,
+                b.id as booking_id, b.passenger_id
+            FROM notifications n
+            LEFT JOIN bookings b ON n.booking_id = b.id
+            LEFT JOIN passenger p ON b.passenger_id = p.passenger_id
+            WHERE n.driver_id = :driver_id 
+            AND n.user_type = 'driver'
+            GROUP BY n.id
+            ORDER BY n.created_at DESC 
+            LIMIT 10
         ");
-        $debug_stmt->execute(['driver_id' => $driver_id]);
-        $all_notifications = $debug_stmt->fetchAll(PDO::FETCH_ASSOC);
-        error_log("All notifications for driver: " . print_r($all_notifications, true));
-    } catch (PDOException $e) {
-        error_log("Error fetching all notifications: " . $e->getMessage());
-    }
-
-    // Get notifications for the driver
-    $stmt = $pdo->prepare("
-        SELECT n.*, p.fullname as passenger_name, p.profile_pic, p.phone as passenger_phone,
-               b.status as booking_status, b.pickup_location, b.destination, b.seats, b.fare,
-               b.id as booking_id, b.passenger_id
-        FROM notifications n
-        LEFT JOIN bookings b ON n.booking_id = b.id
-        LEFT JOIN passenger p ON b.passenger_id = p.passenger_id
-        WHERE n.driver_id = :driver_id 
-        AND n.user_type = 'driver'
-        ORDER BY n.created_at DESC 
-        LIMIT 10
-    ");
-    
-    try {
-        error_log("Executing notifications query for driver_id: " . $driver_id);
+        
         $stmt->execute(['driver_id' => $driver_id]);
-        $notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        error_log("Number of notifications found: " . count($notifications));
-        error_log("Raw notifications data: " . print_r($notifications, true));
+        $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $unread_count = $results[0]['unread_count'] ?? 0;
+        $total_trips = $results[0]['total_trips'] ?? 0;
+        $pending_rides = $results[0]['pending_rides'] ?? 0;
+        $notifications = $results;
+
+        // Get daily ride counts for the last 14 days
+        $stmt = $pdo->prepare("
+            SELECT DATE(created_at) as ride_date, COUNT(*) as ride_count
+            FROM bookings
+            WHERE driver_id = :driver_id
+            GROUP BY ride_date
+            ORDER BY ride_date DESC
+            LIMIT 14
+        ");
+        $stmt->execute(['driver_id' => $driver_id]);
+        $ride_stats = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $ride_dates = [];
+        $ride_counts = [];
+        foreach (array_reverse($ride_stats) as $row) {
+            $ride_dates[] = $row['ride_date'];
+            $ride_counts[] = (int)$row['ride_count'];
+        }
+
     } catch (PDOException $e) {
-        error_log("Error fetching notifications: " . $e->getMessage());
-        $notifications = [];
+        error_log("Database error: " . $e->getMessage());
+        $error_message = "An error occurred while loading your dashboard. Please try again later.";
+        if (strpos($e->getMessage(), 'Connection refused') !== false) {
+            $error_message = "Database connection failed. Please make sure MySQL is running in XAMPP Control Panel.";
+        }
+        die($error_message);
     }
 
-    // Debug output for notifications
-    error_log("Driver ID: " . $driver_id);
-    error_log("SQL Query: " . $stmt->queryString);
-    error_log("Raw notifications data: " . print_r($notifications, true));
+    // Cache the data
+    $_SESSION[$cache_key] = [
+        'timestamp' => time(),
+        'data' => $driver,
+        'notifications' => $notifications,
+        'ride_stats' => $ride_stats,
+        'unread_count' => $unread_count,
+        'total_trips' => $total_trips,
+        'pending_rides' => $pending_rides,
+        'ride_dates' => $ride_dates,
+        'ride_counts' => $ride_counts,
+        'profilePic' => $profilePic
+    ];
 
-    // Get total trips (completed)
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM bookings WHERE driver_id = :driver_id AND status = 'completed'");
-    $stmt->execute(['driver_id' => $driver_id]);
-    $total_trips = $stmt->fetchColumn();
-    // Get pending rides
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM bookings WHERE driver_id = :driver_id AND status = 'pending'");
-    $stmt->execute(['driver_id' => $driver_id]);
-    $pending_rides = $stmt->fetchColumn();
-
-    // Get daily ride counts for the last 14 days
-    $stmt = $pdo->prepare("
-        SELECT DATE(created_at) as ride_date, COUNT(*) as ride_count
-        FROM bookings
-        WHERE driver_id = :driver_id
-        GROUP BY ride_date
-        ORDER BY ride_date DESC
-        LIMIT 14
-    ");
-    $stmt->execute(['driver_id' => $driver_id]);
-    $ride_stats = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $ride_dates = [];
-    $ride_counts = [];
-    foreach (array_reverse($ride_stats) as $row) {
-        $ride_dates[] = $row['ride_date'];
-        $ride_counts[] = (int)$row['ride_count'];
-    }
+display_dashboard:
 
 } catch (PDOException $e) {
     error_log("Database error: " . $e->getMessage());
@@ -304,14 +269,47 @@ if (isset($_SESSION['arrival_state'])) {
             overflow: hidden;
         }
 
+        /* Main content area */
+        .main-content {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            height: 100%;
+        }
+
+        /* Map container */
         #map {
-            height: calc(100vh - 60px); /* Adjust map height to account for header */
+            height: calc(100vh - 60px);
             width: 100%;
             position: absolute;
-            top: 60px; /* Position map below header */
+            top: 60px;
             left: 0;
             z-index: 1;
         }
+
+        /* Header adjustments */
+        .header {
+            padding-left: 280px;
+        }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+
+            #map {
+                left: 0;
+                width: 100%;
+            }
+
+            .header {
+                padding-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
 
         .header {
             position: fixed;
@@ -363,6 +361,42 @@ if (isset($_SESSION['arrival_state'])) {
 
         .notification-icon:hover {
             background-color: #f8f9fa;
+        }
+
+        .notification-icon .badge {
+        }
+
+        .notification-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 300px;
+            padding: 10px;
+            margin-top: 5px;
+            z-index: 1001;
+            display: none;
+        }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+        .notification-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
         }
 
         .notification-icon .badge {
@@ -553,11 +587,69 @@ if (isset($_SESSION['arrival_state'])) {
     </style>
 </head>
 <body>
-    <?php include 'components/header.php'; ?>
-    <?php include 'components/driver_sidebar.php'; ?>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <?php include 'components/driver_sidebar.php'; ?>
+        </aside>
 
-<!-- Map Container -->
-<div id="map"></div>
+        <!-- Main Content -->
+        <main class="content">
+            <!-- Header -->
+            <?php include 'components/header.php'; ?>
+
+            <div class="main-content">
+                <!-- Map Container -->
+                <div id="map"></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="header">
+        <div class="header-left">
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+        <div class="header-right">
+            <div class="notification-icon" onclick="toggleNotifications()">
+                <i class="fas fa-bell"></i>
+                <span class="badge bg-danger rounded-pill" id="notificationBadge"><?php echo $unread_count; ?></span>
+            </div>
+            <div class="avatar-half-circle">
+                <img src="<?php echo htmlspecialchars($profilePic); ?>" alt="Profile" onerror="this.src='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/svgs/solid/user-circle.svg'">
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Dropdown -->
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">
+            <h6>Notifications</h6>
+            <button class="btn btn-link text-primary" onclick="markAllAsRead()">Mark all as read</button>
+        </div>
+        <div id="notificationsList">
+            <?php if (empty($notifications)) : ?>
+                <div class="notification-item no-notifications">
+                    <i class="fas fa-bell"></i>
+                    <p>No new notifications</p>
+                </div>
+            <?php else : ?>
+                <?php foreach ($notifications as $notification) : ?>
+                    <div class="notification-item" onclick="handleNotificationClick(<?php echo json_encode($notification); ?>)">
+                        <div class="notification-content">
+                            <h6 class="mb-0"><?php echo htmlspecialchars($notification['passenger_name']); ?></h6>
+                            <p class="mb-0 text-muted"><?php echo htmlspecialchars($notification['pickup_location']); ?> to <?php echo htmlspecialchars($notification['destination']); ?></p>
+                            <small class="text-muted"><?php echo htmlspecialchars($notification['created_at']); ?></small>
+                        </div>
+                        <div class="notification-actions">
+                            <button class="btn btn-sm btn-primary" onclick="markNotificationAsRead(<?php echo $notification['id']; ?>)">Mark as read</button>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
 
 <!-- Logout Modal -->
 <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
@@ -984,30 +1076,112 @@ if (isset($_SESSION['arrival_state'])) {
         });
 }
 
+    // Function to toggle notifications dropdown
+    function toggleNotifications() {
+        const dropdown = document.getElementById('notificationDropdown');
+        const icon = document.querySelector('.notification-icon');
+        
+        if (dropdown.classList.contains('show')) {
+            dropdown.classList.remove('show');
+            icon.style.backgroundColor = '';
+        } else {
+            dropdown.classList.add('show');
+            icon.style.backgroundColor = '#f8f9fa';
+        }
+    }
+
+    // Function to handle notification click
+    function handleNotificationClick(notification) {
+        if (notification.booking_id) {
+            openBookingModal(notification);
+        }
+        markNotificationAsRead(notification.id);
+        updateNotificationsDisplay([]);
+    }
+
     // Function to update notifications display
     function updateNotificationsDisplay(notifications) {
-        const notificationsContainer = document.querySelector(".notification-dropdown");
-        if (!notificationsContainer) {
-            console.error("Notification container not found");
+        const list = document.getElementById('notificationsList');
+        if (!list) {
+            console.error('Notifications list container not found');
             return;
         }
 
-        // Clear existing notifications except header and footer
-        const header = notificationsContainer.querySelector(".dropdown-header")?.parentElement;
-        const footer = notificationsContainer.querySelector(".dropdown-item.text-center");
-        
-        // Clear all content
-        notificationsContainer.innerHTML = "";
-        
-        // Add back header if it exists
-        if (header) {
-        notificationsContainer.appendChild(header);
-            notificationsContainer.appendChild(document.createElement("div")).className = "dropdown-divider";
-        }
+        // Clear existing notifications
+        list.innerHTML = '';
         
         if (!notifications || notifications.length === 0) {
-            const noNotifications = document.createElement("div");
-            noNotifications.className = "dropdown-item text-center py-3";
+            const noNotifications = document.createElement('div');
+            noNotifications.className = 'notification-item no-notifications';
+            noNotifications.innerHTML = `
+                <div class="d-flex flex-column align-items-center p-3">
+                    <i class="fas fa-bell text-muted mb-2"></i>
+                    <p class="mb-0 text-muted">No new notifications</p>
+                </div>
+            `;
+            list.appendChild(noNotifications);
+        } else {
+            notifications.forEach(notification => {
+                const item = document.createElement('div');
+                item.className = 'notification-item';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="notification-content">
+                            <h6 class="mb-0">${notification.passenger_name}</h6>
+                            <p class="mb-1 text-muted">${notification.pickup_location} to ${notification.destination}</p>
+                            <small class="text-muted">${notification.created_at}</small>
+                        </div>
+                        <div class="notification-actions">
+                            <button class="btn btn-sm btn-outline-primary" onclick="markNotificationAsRead(${notification.id})">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                item.onclick = () => handleNotificationClick(notification);
+                list.appendChild(item);
+            });
+        }
+    }
+
+    // Function to mark all notifications as read
+    function markAllAsRead() {
+        fetch('mark_all_notifications_read.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                driver_id: <?php echo json_encode($driver_id); ?>
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateNotificationBadge(0);
+                updateNotificationsDisplay([]);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Success',
+                    text: 'All notifications marked as read'
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: data.message || 'Failed to mark notifications as read'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'An error occurred while marking notifications as read'
+            });
+        });
+    }
             noNotifications.innerHTML = `
                 <i class="fas fa-bell-slash text-muted mb-2"></i>
                 <p class="mb-0">No notifications</p>

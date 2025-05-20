@@ -77,35 +77,15 @@ function get_member_count($conn, $name) {
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Add Association</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
-    <style>
-        body { background: #f5f7fa; }
-        .main-container { background: #fff; border-radius: 1rem; max-width: 900px; margin: 2rem auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 2rem; margin-left: 260px; }
-        .form-label { font-weight: 600; }
-        .table thead th { font-weight: 600; font-size: 0.95rem; }
-        .table tbody td { font-size: 0.95rem; }
-        /* Sidebar styles */
-        .sidebar-overlay { display: none !important; }
-        .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 260px; background: #8fa195; z-index: 1050; transform: none !important; transition: none; border-top-right-radius: 2rem; }
-        .sidebar.open { transform: none; }
-        .sidebar-header { display: flex; align-items: center; gap: 0.75rem; padding: 1.5rem 1rem 1rem 1.5rem; }
-        .sidebar-logo { width: 40px; height: 40px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; }
-        .sidebar-title { font-weight: 800; font-size: 1.2rem; color: #fff; }
-        .sidebar-subtitle { font-size: 0.85rem; color: #e0e7ef; font-weight: 600; }
-        .sidebar-nav { margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        .sidebar-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 1.5rem; color: #222; font-weight: 500; font-size: 1.05rem; border-radius: 0.5rem; text-decoration: none; transition: background 0.2s; }
-        .sidebar-link:hover { background: #e5e7eb; color: #111; }
-        .sidebar-link i { font-size: 1.3rem; }
-        .sidebar-close { display: none !important; }
-        @media (max-width: 600px) { .sidebar { width: 90vw; } .main-container { margin-left: 0; } }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Association - MTFRB</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <?php include 'sidebar.php'; ?>
+  <?php include 'header.php'; ?>
+<?php include 'sidebar.php'; ?>
   <div class="container py-4" style="margin-left:250px;">
     <div class="main-container">
         
@@ -149,32 +129,34 @@ function get_member_count($conn, $name) {
                             <input type="text" id="searchBox" class="form-control form-control-sm w-50" placeholder="Search...">
                         </div>
                         <div class="table-responsive">
-                            <table class="table table-bordered align-middle" id="assocTable">
-                                <thead class="table-light">
+                            <table class="table table-hover compact">
+                                <thead>
                                     <tr>
-                                        <th>Chairman</th>
-                                        <th>No. of Members</th>
-                                        <th>Name</th>
-                                        <th>Origin</th>
-                                        <th>Action</th>
+                                        <th style="width: 15%;">Chairman</th>
+                                        <th style="width: 15%;">Contact</th>
+                                        <th style="width: 25%;">Association Name</th>
+                                        <th style="width: 30%;">Address</th>
+                                        <th style="width: 15%;">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    <?php foreach ($associations as $assoc): ?>
-                                    <tr>
-                                        <td><?= htmlspecialchars($assoc['chairman']) ?></td>
-                                        <td><?= get_member_count($conn, $assoc['name']) ?></td>
-                                        <td><?= htmlspecialchars($assoc['name']) ?></td>
-                                        <td><?= htmlspecialchars($assoc['address']) ?></td>
-                                        <td>
-                                            <a href="?edit=<?= $assoc['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
-                                            <a href="?delete=<?= $assoc['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this association?');">Delete</a>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                    <?php if (empty($associations)): ?>
-                                    <tr><td colspan="5" class="text-center">No associations found.</td></tr>
-                                    <?php endif; ?>
+                                <tbody id="assocTable">
+                                <?php foreach ($associations as $assoc): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($assoc['chairman']) ?></td>
+                                    <td><?= htmlspecialchars($assoc['chairman_contact']) ?></td>
+                                    <td><?= htmlspecialchars($assoc['name']) ?></td>
+                                    <td><?= htmlspecialchars($assoc['address']) ?></td>
+                                    <td>
+                                        <a href="?edit=<?= $assoc['id'] ?>" class="btn btn-sm btn-primary">Edit</a>
+                                        <a href="?delete=<?= $assoc['id'] ?>" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this association?');">Delete</a>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                                <?php if (empty($associations)): ?>
+                                <tr>
+                                    <td colspan="5" class="text-center">No associations found.</td>
+                                </tr>
+                                <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
